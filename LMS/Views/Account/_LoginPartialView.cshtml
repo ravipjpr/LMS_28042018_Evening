@@ -1,0 +1,122 @@
+﻿@model LMS.Models.LoginViewModel
+@{
+    var db = new CLSLms.LeopinkLMSDBEntities();
+    var isselfreg = false;
+    isselfreg = db.InstanceInfoes.Where(a => a.InstanceID == 1).FirstOrDefault().IsSelfRegistrationOn;
+}
+<div class="container">
+    <div class="card card-login mx-auto mt-5">
+        <div class="card-body">
+            <img src="~/images/compu_lms_logo.png" alt="CSL Logo" class="img-fluid">
+            <div class="left col-12" style="text-align:right;">
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-outline-primary btn-sm" id="lbloption2">
+                        <input type="radio" name="options" id="option2" autocomplete="off"> हिन्दी
+                    </label>
+                    <label class="btn btn-outline-primary btn-sm" id="lbloption1">
+                        <input type="radio" name="options" id="option1" autocomplete="off" checked> English
+                    </label>
+                </div>
+            </div>
+            @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", role = "form", @id = "formlogin" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    @Html.LabelFor(m => m.UserName, new { style = "color:#0867BE" })<span class="req" style="color: #FFC107;font-size:20px">*</span>
+                    @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.UserName, "", new { @style = "color:red" })
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Password, new { style = "color:#0867BE" })<span class="req" style="color: #FFC107;font-size:20px">*</span>
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @style = "color:red" })
+                </div>
+                <input type="submit" value="@LMSResourse.User.Login.login.btnLogin" id="btnSubmitLogin" class="btn btn-primary btn-block" />
+            }
+            <div class="mb-1" style="padding-top:5px;">
+                <div class="mr-6 d-inline-block"></div>
+                <div class="mr-6 d-inline-block" style="float:right"><h5><a class="d-block small" id="forgotpassword" href="" data-toggle="modal" data-target="#myModal">@LMSResourse.User.Login.login.lblForgotPassword</a></h5></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if ('@isselfreg.ToString().ToLower()' == 'false') {
+            $("#selfregistration").hide();
+        }
+    });
+
+    $(function () {
+        // Initialize modal dialog
+        // attach modal-container bootstrap attributes to links with .modal-link class.
+        // when a link is clicked with these attributes, bootstrap will display the href content in a modal dialog.
+        $('body').on('click', '.modal-link', function (e) {
+            e.preventDefault();
+            $(this).attr('data-target', '#modal-container');
+            $(this).attr('data-toggle', 'modal');
+        });
+        // Attach listener to .modal-close-btn's so that when the button is pressed the modal dialog disappears
+        $('body').on('click', '.modal-close-btn', function () {
+            $('#modal-container').modal('hide');
+        });
+        //clear modal cache, so that new content can be loaded
+        $('#modal-container').on('hidden.bs.modal', function () {
+            $(this).removeData('bs.modal');
+        });
+        $('#CancelModal').on('click', function () {
+            return false;
+        });
+        $('#option2').change(function () {
+            LangSelection('2');
+        });
+        $('#option1').change(function () {
+            LangSelection('1');
+        });
+    });
+    function LangSelection(lang) {
+        $.ajax({
+            type: "POST",
+            url: "LangSelection?lang=" + lang,
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                location.reload();
+            },
+            error: function () {
+            }
+        });
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+        var hasQuerySting = window.location.href.split("?");
+
+        if (hasQuerySting.length == 2) {
+            var query = hasQuerySting[1].split("=");
+
+            if (query.length > 1 && query[1] == "register") {
+
+                $("#selfregistration").trigger("click");
+            }
+        }
+        if ('@Session["lang"]' == 'hi') {
+            $("#option1").prop("checked", false);
+            $("#lbloption1").removeClass("active");
+            $("#option2").prop("checked", true);
+            $("#lbloption2").addClass("active");
+        }
+        else if ('@Session["lang"]' == 'en-US') {
+            $("#option2").prop("checked", false);
+            $("#lbloption2").removeClass("active");
+            $("#option1").prop("checked", true).addClass("active");
+            $("#lbloption1").addClass("active");
+        }
+        else {
+            LangSelection('2');
+        }
+
+    });
+</script>
