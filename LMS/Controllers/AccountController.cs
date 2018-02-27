@@ -552,9 +552,6 @@ namespace LMS.Controllers
         }
         
         #endregion
-        
-		
-
         [AllowAnonymous]
         public ActionResult AjaxForgotPassword(ForgotPasswordViewModel model)
         {
@@ -580,5 +577,523 @@ namespace LMS.Controllers
             return Json(new { aaData = false }, JsonRequestBehavior.AllowGet);
         }     
 
+		
+        //
+        #region // Create Self Registration User
+        [AllowAnonymous]
+        public ActionResult CreateSelfRegUser()
+        {
+            SelfRegistration selfreg = new SelfRegistration();
+            return View(selfreg);
+        }
+
+        /*As this method not in use so will remove it later on after development of new user interface*/
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<ActionResult> _CreateSelfRegUser(CLSLms.MetaData.SelfRegisterMetaData selfregistration)
+        {
+            if (ModelState.IsValid)
+            {
+                var objSelfReg = new SelfRegistration();
+                var userdenycount = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.Email_Address && self.IsApprove == 2).Count();
+                if (userdenycount == 0)
+                {
+                    objSelfReg = new SelfRegistration();
+                    objSelfReg.FirstName = selfregistration.FirstName;
+                    objSelfReg.LastName = selfregistration.LastName;
+                    objSelfReg.EmailAddress = selfregistration.Email_Address;
+                    objSelfReg.IsApprove = 0;
+                    objSelfReg.RegistrationDate = DateTime.Now;
+                    db.SelfRegistrations.Add(objSelfReg); // add record in SelfRegistration table in data base
+                    db.SaveChanges();
+                }
+                else
+                {
+                    objSelfReg = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.Email_Address && self.IsApprove == 2).FirstOrDefault();
+                    if (objSelfReg != null)
+                    {
+                        objSelfReg.FirstName = selfregistration.FirstName;
+                        objSelfReg.LastName = selfregistration.LastName;
+                        objSelfReg.IsApprove = 0;
+                        objSelfReg.RegistrationDate = DateTime.Now;
+                        db.SaveChanges();
+                    }
+                }
+
+                // Checking any Order exists  in the session 
+                if (Session["OrderId"] != null && Session["OrderId"].ToString() != "")
+                {
+                    //If any order exist then approve user  manually and send login detail mail to user 
+                    var selfUser = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.Email_Address).FirstOrDefault();
+                    var result = await ApproveSelfRegisterdUserManually(selfregistration.Email_Address, (selfUser != null ? Convert.ToInt32(selfUser.SelfRegistrationId) : 0));
+                    if (result)
+                    {
+                        //return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Account") });
+                        return Json(new { success = true, returnUrl = Url.Action("Checkout", "Account") });
+                    }
+                }
+
+                #region Sending mail to admin after self registration
+                var objInstance = (from o in db.InstanceInfoes
+                                   where o.InstanceID == 1
+                                   select new { o.InstanceTitle, o.HostEmail, o.URL, o.SmtpIPv4 }).FirstOrDefault();
+                if (objInstance != null)
+                {
+                    var objEmail = (from oEmail in db.Emails
+                                    where oEmail.MailCode == "NEWU" && oEmail.IsOn == true
+                                    select new { oEmail.Subject, oEmail.Body, oEmail.ID }).FirstOrDefault();
+                    if (objEmail != null)
+                    {
+                        string fromEmail = objInstance.HostEmail;
+                        string subject = objEmail.Subject.Replace("{InstanceTitle}", objInstance.InstanceTitle);
+
+                        string body = objEmail.Body;
+                        body = body.Replace("{InstanceTitle}", objInstance.InstanceTitle).Replace("{InstanceURL}", objInstance.URL).Replace("{FirstName}", HttpUtility.HtmlEncode(selfregistration.FirstName)).Replace("{LastName}", HttpUtility.HtmlEncode(selfregistration.LastName)).Replace("{Email}", HttpUtility.HtmlEncode(selfregistration.Email_Address)); //edit it
+                        body = body.Replace("{approve_url}", (System.Web.Configuration.WebConfigurationManager.AppSettings["InstanceURL"] + "/SelfRegistration/ApproveSelfRegUsers"));
+                        try
+                        {
+                            var sqlquery = "Select Top 1 * from UserProfile" +
+                                           " Join AspNetUserRoles on AspNetUserRoles.UserId = UserProfile.Id" +
+                                           " where AspNetUserRoles.RoleId =  '19DA82D0-4002-474F-8983-306FBC1C8A9E'" +
+                                           " and UserProfile.IsDelete = 0";
+                            IEnumerable<UserProfile> Objuser = null;
+                            Objuser = db.Database.SqlQuery<UserProfile>(sqlquery).ToList();
+                            if (Objuser.Count() > 0)
+                            {
+                                foreach (var usr in Objuser)
+                                {
+                                    MailEngine.Send(selfregistration.Email_Address, usr.EmailAddress, subject, body, objInstance.SmtpIPv4);
+                                    MailEngine oLog = new MailEngine();
+
+                                    if (userdenycount == 0)
+                                    {
+                                        var objSelfReg1 = (from s in db.SelfRegistrations
+                                                           where s.EmailAddress == objSelfReg.EmailAddress
+                                                           select new { s.SelfRegistrationId }).FirstOrDefault();
+                                        if (objSelfReg1 != null)
+                                            oLog.LogEmail(selfregistration.Email_Address, objEmail.ID, usr.UserId, objSelfReg1.SelfRegistrationId);
+                                        //objUser.IsRegisterMailSend = true;
+                                        //db.SaveChanges();
+                                    }
+                                    else
+                                    {
+                                        oLog.LogEmail(selfregistration.Email_Address, objEmail.ID, usr.UserId, objSelfReg.SelfRegistrationId);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+                }
+                #endregion
+                // return RedirectToAction("Login", "Account");
+                return Json(new { success = true, returnUrl = "" });
+            }
+            return Json(new { success = false, error = ModelState });
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public string UniqueSelfRegEmailAddress(string email)
+        {
+            var emailaddcount = from selfreg in db.SelfRegistrations
+                                where selfreg.EmailAddress == email && selfreg.IsApprove != 2
+                                select selfreg;
+            if (emailaddcount.Count() > 0)
+                return "1";
+            else
+            {
+                var useremailcount = from user in db.UserProfiles
+                                     where user.EmailAddress == email
+                                     select user;
+                if (useremailcount.Count() > 0)
+                    return "1";
+            }
+
+            return "";
+        }
+		
+		public async Task<Boolean> ApproveSelfRegisterdUserManually(string email, int uid, SelfRegistrationModel selfregistration = null)
+        {
+            SelfRegistrationController objSelfRegistrationController = new SelfRegistrationController();
+            var errorMessage = "";
+
+            var sid = Convert.ToInt32(uid);
+            var selfreg = db.SelfRegistrations.Where(x => x.SelfRegistrationId == sid).FirstOrDefault();
+            var DefaultOrgId = 0;
+            if (selfreg != null)
+            {
+                var user = new ApplicationUser() { UserName = selfreg.EmailAddress };
+                var pwd = System.Configuration.ConfigurationManager.AppSettings["defaultPassword"].ToString();//objSelfRegistrationController.AjaxGeneratePassword();
+                var result = UserManager.Create(user, pwd.ToString()); // create a user by usermanager by passing username(i.e email address) and password. this will create record in aspNetUsers table.
+
+                if (result.Succeeded) // check the status of user creation.
+                {
+                    #region // create the object of user profile in which other information of user is saved
+                    var objUser = new UserProfile();
+                    objUser.Id = user.Id;
+                    objUser.EmployeeID = "";
+                    objUser.FirstName = selfreg.FirstName;
+                    objUser.LastName = selfreg.LastName;
+                    objUser.EmailAddress = selfreg.EmailAddress;
+                    objUser.ContactNo = "";
+                    objUser.ManagerName = "";
+                    objUser.Status = true;
+                    objUser.RegistrationDate = DateTime.Now;
+                    objUser.DateLastModified = DateTime.Now;
+                    objUser.LastModifiedByID = Convert.ToInt64(Session["UserID"]);
+                    objUser.LanguageId = db.InstanceInfoes.Find(1).DefaultLanguage;
+                    objUser.SchoolId = selfregistration.SchoolID;
+                    objUser.ContactNo = selfregistration.ContactNo;
+
+                    if (ConfigurationManager.AppSettings["DefaultOrganization"] != null && ConfigurationManager.AppSettings["DefaultOrganization"].ToString() != "" && Convert.ToInt32(ConfigurationManager.AppSettings["DefaultOrganization"].ToString()) != 0)
+                    {
+                        DefaultOrgId = Convert.ToInt32(ConfigurationManager.AppSettings["DefaultOrganization"].ToString());
+                        objUser.OrganisationID = DefaultOrgId;
+                    }
+
+                    #region //check the Optional data depending on selected organisation.
+                    var objOrgSettings = db.UserProfileSettingsOrgs.Where(x => x.OrganisationID == DefaultOrgId).Select(x => x).ToList();
+                    if (objOrgSettings.Count > 0)
+                    {
+                        var objorgsetprofile1 = objOrgSettings.Where(x => x.ProfileSettingID == 1 && x.OrganisationID == DefaultOrgId).ToList();
+                        if (objorgsetprofile1.Count > 0)
+                        {
+                            if (objOrgSettings.Where(x => x.ProfileSettingID == 1).SingleOrDefault().ProfileType == 2)
+                            {
+
+                                objUser.Option1 = "Please enter here your Profile Values Title";
+                            }
+                            else
+                                objUser.Option1 = null;
+                        }
+                        else
+                            objUser.Option1 = null;
+
+                        var objorgsetprofile2 = objOrgSettings.Where(x => x.ProfileSettingID == 2 && x.OrganisationID == DefaultOrgId).ToList();
+                        if (objorgsetprofile2.Count > 0)
+                        {
+                            if (objOrgSettings.Where(x => x.ProfileSettingID == 2).SingleOrDefault().ProfileType == 2)
+                            {
+                                objUser.Option2 = "Please enter here your Profile Values Title";
+                            }
+                            else
+                                objUser.Option2 = null;
+                        }
+                        else
+                            objUser.Option2 = null;
+                    }
+                    #endregion
+
+                    objUser.IsDelete = false;
+                    db.UserProfiles.Add(objUser); // add record in userprofile table in data base
+                    db.SaveChanges(); // user creation is completed.
+                    if (selfregistration != null && !string.IsNullOrEmpty(selfregistration.UserIDs))
+                    {
+                        string[] studentIds = selfregistration.UserIDs.Split(',');
+                        foreach (string studentId in studentIds)
+                        {
+                            var parentStudent = new ParentStudent();
+                            parentStudent.ParentId = objUser.UserId;
+                            parentStudent.StudentId = Convert.ToInt64(studentId);
+                            parentStudent.AssignedStatus = true;
+                            parentStudent.CreatedById = Convert.ToInt64(Session["UserID"]);
+                            parentStudent.CreatedDate = DateTime.Now;
+                            parentStudent.ModifiedById = Convert.ToInt64(Session["UserID"]);
+                            parentStudent.ModifiedDate = DateTime.Now;
+                            db.ParentStudents.Add(parentStudent);
+                            db.SaveChanges();
+                        }
+                    }
+                    #endregion
+
+                    #region // default role. Add the default role to user i.e learner.
+                    var res = UserManager.AddToRole(user.Id.ToString(), db.InstanceInfoes.Find(1).RoleName);
+                    db.SaveChanges();
+                    #endregion
+
+                    #region // Assigning groups to user
+                    foreach (var y in db.Groups.Where(a => a.GroupID == selfregistration.GroupID || selfregistration.GroupIDs.Contains(a.GroupID.ToString())).OrderByDescending(b => b.CreationDate).ToList())
+                    {
+                        UserGroup ObjUs = new UserGroup(); // create object of usergroup in which user and group relationship is saved.
+                        ObjUs.UserId = objUser.UserId;
+                        ObjUs.GroupID = y.GroupID;
+                        ObjUs.LastModifiedByID = objUser.UserId;
+                        ObjUs.DateLastModified = DateTime.Now;
+                        db.UserGroups.Add(ObjUs);
+                        db.SaveChanges();
+                    }
+                    #endregion
+
+                    #region //Update Self Registration with userid and approve status
+                    selfreg.UserId = objUser.UserId;
+                    selfreg.IsApprove = 1;
+                    db.SaveChanges();
+                    #endregion
+
+                    // email send to user with username and password information.
+                    objSelfRegistrationController.SendApprovalMailToUser(selfreg.SelfRegistrationId, selfreg.EmailAddress, pwd);
+
+                    #region validate and Sign In user
+                    var userProfile = db.UserProfiles.Where(x => x.EmailAddress == selfreg.EmailAddress && x.IsDelete == false && x.Status == true).FirstOrDefault();
+                    var userDetail = await UserManager.FindAsync(selfreg.EmailAddress, pwd);
+                    if (userDetail != null && userProfile != null && selfregistration == null)
+                    {
+                        {
+                            await SignInAsync(userDetail, false);
+                            List<MAclActions> oUserInRoles = db.Database.SqlQuery<MAclActions>("SELECT AM.ACLActionID,ActionFQN,UR.RoleId FROM ACLMatrix AS AM INNER JOIN AspNetUserRoles AS UR ON AM.RoleID=UR.RoleId INNER JOIN ACLActions AS ACLS ON ACLS.ACLActionID=AM.ACLActionID WHERE AM.IsAccess = 1 and UR.UserId IN(SELECT AspNetUsers.Id FROM AspNetUsers WHERE Username=@Username)", new SqlParameter("Username", userDetail.UserName)).ToList();
+                            //var oUserInRoles = db.Database.SqlQuery<MAclActions>("SELECT AM.ACLActionID,ActionFQN,UR.RoleId FROM ACLMatrix AS AM INNER JOIN AspNetUserRoles AS UR ON AM.RoleID=UR.RoleId INNER JOIN ACLActions AS ACLS ON ACLS.ACLActionID=AM.ACLActionID WHERE AM.IsAccess = 1 and UR.UserId IN(SELECT UserId FROM AspNetUsers WHERE Username=@Username)", new SqlParameter("Username", model.UserName)).ToList();
+
+                            Session["MAclActions"] = oUserInRoles;
+
+                            var currentUser = userProfile;
+                            Session["UserID"] = currentUser.UserId;
+                            Session["LastName"] = currentUser.LastName; //session used for scorm course API12.vb
+                            Session["Firstname"] = currentUser.FirstName; //session used for scorm course API12.vb
+                            Session["LanguageId"] = currentUser.LanguageId;
+                            Session["IsGroupAdmin"] = UserManager.IsInRole(currentUser.Id, ConfigurationManager.AppSettings["GroupAdminRole"].ToString());
+                            Session["UserRoles"] = GetUserRolesSession(UserManager.GetRoles(currentUser.Id));
+                            Session["IsAdminView"] = ((Session["UserRoles"].ToString()).Split(',').Select(int.Parse).ToArray().Contains(2) || (Session["UserRoles"].ToString()).Split(',').Select(int.Parse).ToArray().Contains(1));
+
+                            Session["IsSuperAdmin"] = false;
+                            Session["IsSuperAdmin"] = false;
+                            Session["CourseMangerRole"] = "NA";
+                            return true;
+                        }
+                    }
+                    else if (userDetail != null && userProfile != null && selfregistration != null)
+                    {
+                        return true;
+                    }
+                    else // if any error exist at the time of user creation add all the error's in model
+                    {
+                        foreach (var x in result.Errors)
+                            errorMessage += x.ToString();
+                        ModelState.AddModelError("OrganisationID", errorMessage);
+                    }
+                    #endregion
+                }
+            }
+
+            return false;
+        }
+		
+		[AllowAnonymous]
+        public async Task<ActionResult> AjaxCreateSelfRegUser(SelfRegistrationModel selfregistration)
+        {
+            bool autoapproveSelfRegistration = Convert.ToBoolean(System.Configuration.ConfigurationManager.AppSettings["AutoapproveSelfRegistration"]);
+            //if (ModelState.IsValid)
+            //{
+            var objSelfReg = new SelfRegistration();
+            var userdenycount = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.EmailAddress && self.IsApprove == 2).Count();
+            if (userdenycount == 0)
+            {
+                objSelfReg = new SelfRegistration();
+                objSelfReg.FirstName = selfregistration.FirstName;
+                objSelfReg.LastName = selfregistration.LastName;
+                objSelfReg.EmailAddress = selfregistration.EmailAddress;
+                objSelfReg.IsApprove = 0;
+                objSelfReg.RegistrationDate = DateTime.Now;
+                objSelfReg.SchoolId = selfregistration.SchoolID;
+                objSelfReg.RoleName = (selfregistration.RoleId == 1 ? "Learner" : selfregistration.RoleId == 2 ? "Parent" : "Teacher");
+                objSelfReg.GroupIDs = selfregistration.GroupIDs;
+                objSelfReg.UserIDs = selfregistration.UserIDs;
+                objSelfReg.ContactNo = selfregistration.ContactNo;
+                db.SelfRegistrations.Add(objSelfReg); // add record in SelfRegistration table in data base
+                db.SaveChanges();
+                if (autoapproveSelfRegistration && selfregistration.RoleId == 1)
+                {
+                    bool isApproved = await ApproveSelfRegisterdUserManually(objSelfReg.EmailAddress, Convert.ToInt32(objSelfReg.SelfRegistrationId), selfregistration);
+                    if (isApproved)
+                    {
+                        string userRegisterMessage = LMSResourse.Admin.Login.msgConfirmSelfRegistration + "<br/>" +
+                        "<b>" + LMSResourse.User.Login.login.lblUserName + ":</b> " + objSelfReg.EmailAddress + " and <br/><b>" + LMSResourse.User.Login.login.lblPassword + ":</b> " + System.Configuration.ConfigurationManager.AppSettings["defaultPassword"].ToString();
+                        return Json(new { aaData = userRegisterMessage }, JsonRequestBehavior.AllowGet);
+                    }
+                }
+            }
+            else
+            {
+                objSelfReg = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.EmailAddress && self.IsApprove == 2).FirstOrDefault();
+                if (objSelfReg != null)
+                {
+                    objSelfReg.FirstName = selfregistration.FirstName;
+                    objSelfReg.LastName = selfregistration.LastName;
+                    objSelfReg.IsApprove = 0;
+                    objSelfReg.RegistrationDate = DateTime.Now;
+                    db.SaveChanges();
+                }
+            }
+
+            if (Session["OrderId"] != null && Session["OrderId"].ToString() != "" && autoapproveSelfRegistration == false)
+            {
+                var selfUser = db.SelfRegistrations.Where(self => self.EmailAddress == selfregistration.EmailAddress).FirstOrDefault();
+                bool result = await ApproveSelfRegisterdUserManually(selfregistration.EmailAddress, (selfUser != null ? Convert.ToInt32(selfUser.SelfRegistrationId) : 0));
+                if (result)
+                {
+                    //return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Account") });
+                    return Json(new { aaData = result, returnUrl = "Checkout" }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            //Sending mail to admin after self registration
+            if (!autoapproveSelfRegistration || selfregistration.RoleId > 1)
+            {
+                var objInstance = (from o in db.InstanceInfoes
+                                   where o.InstanceID == 1
+                                   select new { o.InstanceTitle, o.HostEmail, o.URL, o.SmtpIPv4 }).FirstOrDefault();
+                if (objInstance != null)
+                {
+                    var objEmail = (from oEmail in db.Emails
+                                    where oEmail.MailCode == "NEWU" && oEmail.IsOn == true
+                                    select new { oEmail.Subject, oEmail.Body, oEmail.ID }).FirstOrDefault();
+                    if (objEmail != null)
+                    {
+                        string fromEmail = objInstance.HostEmail;
+                        string subject = objEmail.Subject.Replace("{InstanceTitle}", objInstance.InstanceTitle);
+
+                        string body = objEmail.Body;
+                        body = body.Replace("{InstanceTitle}", objInstance.InstanceTitle).Replace("{InstanceURL}", objInstance.URL).Replace("{FirstName}", HttpUtility.HtmlEncode(selfregistration.FirstName)).Replace("{LastName}", HttpUtility.HtmlEncode(selfregistration.LastName)).Replace("{Email}", HttpUtility.HtmlEncode(selfregistration.EmailAddress)); //edit it
+                        body = body.Replace("{approve_url}", (System.Web.Configuration.WebConfigurationManager.AppSettings["InstanceURL"] + "/SelfRegistration/ApproveSelfRegUsers"));
+                        try
+                        {
+                            var sqlquery = "Select Top 1 * from UserProfile" +
+                                           " Join AspNetUserRoles on AspNetUserRoles.UserId = UserProfile.Id" +
+                                           " where AspNetUserRoles.RoleId =  '19DA82D0-4002-474F-8983-306FBC1C8A9E'" +
+                                           " and UserProfile.IsDelete = 0";
+                            IEnumerable<UserProfile> Objuser = null;
+                            Objuser = db.Database.SqlQuery<UserProfile>(sqlquery).ToList();
+                            if (Objuser.Count() > 0)
+                            {
+                                foreach (var usr in Objuser)
+                                {
+                                    MailEngine.Send(selfregistration.EmailAddress, usr.EmailAddress, subject, body, objInstance.SmtpIPv4);
+                                    MailEngine oLog = new MailEngine();
+
+                                    if (userdenycount == 0)
+                                    {
+                                        var objSelfReg1 = (from s in db.SelfRegistrations
+                                                           where s.EmailAddress == objSelfReg.EmailAddress
+                                                           select new { s.SelfRegistrationId }).FirstOrDefault();
+                                        if (objSelfReg1 != null)
+                                            oLog.LogEmail(selfregistration.EmailAddress, objEmail.ID, usr.UserId, objSelfReg1.SelfRegistrationId);
+                                        //objUser.IsRegisterMailSend = true;
+                                        //db.SaveChanges();
+                                    }
+                                    else
+                                    {
+                                        oLog.LogEmail(selfregistration.EmailAddress, objEmail.ID, usr.UserId, objSelfReg.SelfRegistrationId);
+                                    }
+                                }
+                            }
+
+                            return Json(new { aaData = LMSResourse.Admin.ProfileSettings.msgSelfRegSubmit }, JsonRequestBehavior.AllowGet);
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+                }
+            }
+
+            return Json(new { aaData = false }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowAnonymous]
+        public ActionResult AjaxForgotPassword(ForgotPasswordViewModel model)
+        {
+            var objUser = db.UserProfiles.Where(us => us.EmailAddress == model.EmailAddress && us.Id != null && us.IsDelete == false).FirstOrDefault(); //&& us.IsDelete == false
+            if (objUser != null)
+            {
+                var UserExists = db.AspNetUsers.Where(x => x.UserName == model.EmailAddress).FirstOrDefault(); ;
+                if (UserExists != null)
+                {
+                    DateTime dt = System.DateTime.Now.AddDays(1);
+                    double span = ConvertDateTimeToTimestamp(dt);
+                    string url = System.Configuration.ConfigurationManager.AppSettings["InstanceURL"].ToString() + "/Account/Resetpassword?&code=" + UserExists.Id + "&token=" + span.ToString();
+                    LMS.Controllers.UserManagementController Reset = new UserManagementController();
+
+                    Reset.SendMailToUser("FPASS", model.EmailAddress, url);
+                    Session["ResetID"] = UserExists.Id;
+                    Session["ResetExpTime"] = System.DateTime.Now.AddDays(1);
+
+                    return Json(new { aaData = true }, JsonRequestBehavior.AllowGet);
+                }
+            }
+
+            return Json(new { aaData = false }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowAnonymous]
+        public ActionResult AjaxGetGroupUsers(string groupIDs, int schoolId)
+        {
+            var users = db.UserProfiles
+                .Join(db.UserGroups, up => up.UserId, ug => ug.UserId, (up, ug) => new { UP = up, UG = ug })
+                .Join(db.AspNetUserRoles, up => up.UP.Id, ar => ar.UserId, (up, r) => new { AR = r, upr = up })
+                .Join(db.AspNetRoles, asur => asur.AR.RoleId, asr => asr.Id, (asur, asr) => new { ASR = asr, ASUR = asur })
+                .Where(upf => (upf.ASR.Name.Contains("Learner") &&
+                !upf.ASR.Name.Contains("Administrator") &&
+                !upf.ASR.Name.Contains("Group Admin") &&
+                !upf.ASR.Name.Contains("Course Publisher") &&
+                !upf.ASR.Name.Contains("Course Reviewer") &&
+                !upf.ASR.Name.Contains("Course Creator")
+                ) &&
+                groupIDs.Contains(upf.ASUR.upr.UG.GroupID.ToString()) &&
+                upf.ASUR.upr.UP.SchoolId == schoolId).Select(x => new { UserId = x.ASUR.upr.UP.UserId, FirstName = x.ASUR.upr.UP.FirstName + " " + x.ASUR.upr.UP.LastName + " - " + x.ASUR.upr.UP.EmailAddress });
+
+            return Json(new { aaData = users }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowAnonymous]
+        public ActionResult AjaxGetBlockOfDistrictByID(int districtId)
+        {
+            var block = from b in db.DistrictBlocks
+                        where b.DistrictId == districtId
+                        select new { b.BlockId, b.BlockName };
+            return Json(new { data = block }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowAnonymous]
+        public ActionResult AjaxGetSchoolOfBlockByID(int blockId)
+        {
+            var school = from s in db.DistrictSchools
+                         where s.BlockId == blockId
+                         select new { s.SchoolId, s.SchoolName };
+
+            return Json(new { data = school }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowAnonymous]
+        public ActionResult SelfRegistrationUser(string returnUrl)
+        {
+            if (Session["UserID"] != null)
+            {
+                return RedirectToLocal(returnUrl);
+            }
+            var DefaultOrgId = 0;
+            if (ConfigurationManager.AppSettings["DefaultOrganization"] != null && ConfigurationManager.AppSettings["DefaultOrganization"].ToString() != "" && Convert.ToInt32(ConfigurationManager.AppSettings["DefaultOrganization"].ToString()) != 0)
+            {
+                DefaultOrgId = Convert.ToInt32(ConfigurationManager.AppSettings["DefaultOrganization"].ToString());
+            }
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.GroupList = new SelectList(db.Groups.Where(a => a.GroupID != 1 && a.OrganisationID == DefaultOrgId).OrderBy(g => g.GroupName).Select(g => g), "GroupID", "GroupName");
+            ViewBag.DistrictList = new SelectList(db.Districts.OrderBy(d => d.DistrictName).Select(d => d), "DistrictId", "DistrictName");
+            ViewBag.BlockList = new SelectList(new List<DistrictBlock>(), "BlockId", "BlockName");
+            ViewBag.SchoolList = new SelectList(new List<DistrictSchool>(), "SchoolId", "SchoolName");
+
+            SelfRegistrationModel selfRegistrationModel = new SelfRegistrationModel();
+            var UserGroup = new UserGroupsLocalView();
+
+            // Group that is not associeated to any organisation will not be listed in group list.
+            UserGroup.AvailableGroups = db.Groups.Where(g => g.IsDeleted == false && g.OrganisationID == DefaultOrgId && g.Status == true && g.GroupID != 1).Select(g => new UserGroupsLocal { GroupId = g.GroupID.ToString(), GroupName = g.GroupName, IsSelected = false }).OrderBy(g => g.GroupName).ToList();
+            UserGroup.SelectedGroups = db.Groups.Where(g => g.GroupID == 0).Select(g => new UserGroupsLocal { GroupId = g.GroupID.ToString(), GroupName = g.GroupName, IsSelected = true }).OrderBy(g => g.GroupName).ToList();
+            selfRegistrationModel.UserGroupList = UserGroup;
+            //LoginViewModel
+
+            return View(selfRegistrationModel);
+        }
+        #endregion
     }
 }
