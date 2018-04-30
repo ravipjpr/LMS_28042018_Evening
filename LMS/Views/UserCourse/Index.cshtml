@@ -1,0 +1,527 @@
+﻿@model List<CLSLms.GetUserAllCourses_Result>
+@{
+    ViewBag.Title = "User Course list";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    @Styles.Render("~/Content/jquery.dataTables.min.css");
+
+    var category = 0;
+    var allRecords = Model.ToList();
+    int? topicId = 0;
+    List<int> CategoryArray = new List<int>();
+    List<KeyValuePair<int, int?>> catTopic = new List<KeyValuePair<int, int?>>();
+    <style type="text/css">
+        .hover {
+            background-color: lightyellow;
+        }
+
+        .selected {
+            background-color: blue;
+        }
+
+        .width80 {
+            width: 80%;
+        }
+
+        .width150 {
+            width: 150%;
+        }
+    </style>
+}
+<link href="@Url.Content("~/Include/css/star-rating-svg.css")" rel='stylesheet' />
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="UserCourse">@LMSResourse.Common.ApplicationMenu.lblHome</a></li>
+            <li class="breadcrumb-item active">@LMSResourse.Common.ApplicationMenu.lblViewAllcourses</li>
+        </ol>
+    </nav>
+    <div class="table-responsive">
+        @if (allRecords.Count() > 0)
+        {
+            for (int x = 0; x < allRecords.Count(); x++)
+            {
+                if (category != allRecords[x].CategoryId)
+                {
+                    category = allRecords[x].CategoryId;
+                    topicId = -1;
+                    @*if (catTopic.Where(a => a.Key.Equals(category)).Count() == 0)
+                        {
+                            <div style="margin-bottom:16px;"><b>@LMSResourse.Common.ApplicationMenu.lblContentCategory:</b> @allRecords[x].CategoryName</div>
+                        }*@
+                }
+
+                if (category == allRecords[x].CategoryId && topicId != allRecords[x].TopicId && catTopic.Where(a => a.Key.Equals(category) && a.Value.Equals(allRecords[x].TopicId)).Count() == 0)
+                {
+                    topicId = allRecords[x].TopicId;
+
+                    KeyValuePair<int, int?> p1 = new KeyValuePair<int, int?>(category, topicId);
+                    catTopic.Add(p1);
+                    if (allRecords[x].TopicName != "z" && !String.IsNullOrEmpty(allRecords[x].TopicName))
+                    {
+                        <div style="margin-bottom: 20px;"><b>@LMSResourse.Common.ApplicationMenu.lblContentCategory:</b> @allRecords[x].CategoryName  <b>&nbsp;>>&nbsp;@LMSResourse.Common.ApplicationMenu.lblContentTopic: </b>@allRecords[x].TopicName</div>
+                    }
+                    else
+                    {
+                        <div style="margin-bottom:16px;"><b>@LMSResourse.Common.ApplicationMenu.lblContentCategory:</b> @allRecords[x].CategoryName</div>
+                    }
+                    <table border="0" class="table table-bordered dataTable table-hover" id="">
+                        <thead>
+                            <tr>
+                                    <th class="border-left-top-bottom thleft" style="width: 300px;">
+                                    @LMSResourse.User.UserCourse.thName
+                                </th>
+                                    <th class="colhide thleft" style="width: 100px;">
+                                        @LMSResourse.User.UserCourse.thType
+                                </th>
+                                    <th class="colhide thleft" style="width: 100px;">
+                                    @LMSResourse.User.UserCourse.thStatus
+                                </th>
+                                    <th class="thcenter" style="width: 97px;">
+                                        @LMSResourse.User.UserCourse.thValidity
+                                </th>
+                                    <th class="colhide thcenter" style="width: 97px;">
+                                        @LMSResourse.User.UserCourse.thAccessedDate
+                                </th>
+                                    <th class="colhide thcenter" style="width: 70px;">
+                                    @LMSResourse.User.UserCourse.thScore
+                                </th>
+                                    <th class="thcenter" style="width: 50px;">
+                                        @*Feedback*@
+                                </th>
+                                    <th class="border-right-top-bottom thcenter" id="thStart" style="width: 50px;">
+                                        @*@LMSResourse.User.UserCourse.thStart*@
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in allRecords.Where(b => b.CategoryId == category && b.TopicId == topicId))
+                            {
+                                <tr>
+                                        <td class="thleft" data-id="@item.CourseType" data-id1="@item.CourseDescription" data-id2="@item.PassMarks" data-id3="@item.IsMobile" data-id4="@item.CourseDurationMin" data-id5="@item.Mandaotry" data-id6="@item.LaunchFileName" data-id7="@item.CategoryName" data-toggle="tooltip" data-placement="right" title="" data-original-title="@item.CourseName"><a style='color:blue;' class='courseDetail' href='#' data-toggle='' data-target='#mCourseDetail'>@item.CourseName</a></td>
+                                        <td class="colhide thleft">@item.ContentType</td>
+                                    @if (item.Status == "Completed" && item.CertificateID != 0)
+                                    {
+                                            <td class="colhide thleft">@item.Status <img src="~/Images/Certificate_icon.png" height="20" width="20" style="cursor:pointer" title="View Certificate" onclick="javascript:documnets.CertificatePreview('@item.CourseId ','@Convert.ToInt64(HttpContext.Current.Session["UserID"].ToString())')" /></td>
+                                    }
+                                    else
+                                    {
+                                            <td class="colhide thleft">@item.Status</td>
+                                    }
+                                        <td class="thcenter">@string.Format("{0:dd/MM/yyyy}", item.ExpiryDate)</td>
+                                        @*<td>@string.Format("{0:dd/MM/yyyy HH:mm}", item.LastAccessDate)</td>*@
+                                        <td class="colhide thcenter">@string.Format("{0:dd/MM/yyyy}", item.LastAccessDate)</td>
+                                        <td class="colhide thcenter">@item.Score</td>
+                                        @*<td style="text-align:center;"><a href="#" class="courseFeedback_btn" data-id="@item.CourseId" data-id1="@(item.CourseType==null ? 4 : item.CourseType)" data-id2="@item.SurveyID"><i class="fa fa-pencil-square-o"></i></a></td>*@
+                                    @if (item.Status == "Completed")
+                                    {
+                                            <td class="thcenter"><a href="#" class="courseFeedback_btn" data-id="@item.CourseId" data-id1="@(item.CourseType==null ? 4 : item.CourseType)" data-id2="@item.SurveyID"><i class='fa fa-comments fa-2x' title="Feedback"></i></a></td>
+                                    }
+                                    else
+                                    {
+                                            <td class="thcenter"><a href="#" style="color:grey; cursor: default;"><i class='fa fa-comments fa-2x' title="Feedback"></i></a></td>
+                                    }
+                                    @if (item.IsAccessible == 1)
+                                    {
+                                        if (item.CourseType == 2)
+                                        {
+                                                <td class="thcenter"><a href="javascript:void(0);" title="@LMSResourse.Common.ApplicationMenu.tooltipStart" class="courseLaunch_btn" onclick="javascript: documnets.PreviewXAPI('@item.CourseId ','@item.CourseFile.Replace("\\", "/").Substring(1) ','@item.WindowHeight','@item.WindowWidth','@Session["EmployeeID"].ToString()','@System.Configuration.ConfigurationManager.AppSettings["xapiEndpoint"].ToString()',0,'@item.LaunchFileName')"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else if (item.CourseType == 3)
+                                        {
+                                                <td class="thcenter"><a href="javascript:void(0);" title="@LMSResourse.Common.ApplicationMenu.tooltipStart" class="courseLaunch_btn" onclick="javascript: documnets.PreviewCustom('@item.CourseId')"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else if (item.CourseType == 1 || item.CourseType == 4)
+                                        {
+                                                <td class="thcenter"><a href="javascript:void(0);" title="@LMSResourse.Common.ApplicationMenu.tooltipStart" class="courseLaunch_btn" onclick="javascript: documnets.Preview('@item.CourseId ','@item.CourseFile ','@item.WindowHeight','@item.WindowWidth')"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else if (item.CourseType == 0)
+                                        {
+                                                <td class="thcenter"><a href="#" class="Assessment_btn" data-id="@item.CourseId"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else
+                                        {
+                                                <td class="thcenter">
+                                                    <a href="javascript:void(0);" title="@LMSResourse.Common.ApplicationMenu.tooltipPreview" class="coursePreview_btn" onclick="javascript: documnets.PreviewDocument('@item.CourseId','@item.CourseFile','@item.WindowHeight','@item.WindowWidth','@Path.GetFileName(item.CourseFile)','@Html.Action("getdocmentUrl", "Document", new { id = item.CourseId,userid = Session["UserID"] })')"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a>
+                                                <input type="hidden" id="DocumentId_@item.CourseId" value="@item.CourseFile" />
+                                            </td>
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (item.CourseType == 0)
+                                        {
+                                                <td class="tdLaunch thcenter"><a title="This assessment has been expired" class="courseLaunch_btn" style="color: #111;"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else if (item.ContentType == "e-Learning")
+                                        {
+                                                <td class="tdLaunch thcenter"><a title="@LMSResourse.Common.ApplicationMenu.tooltipExpired" class="courseLaunch_btn" style="color: #111;"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a></td>
+                                        }
+                                        else
+                                        {
+                                                <td class="tdLaunch thcenter">
+                                                    <a href="javascript:void(0);" title="@LMSResourse.Common.ApplicationMenu.tooltipExpiredContentDocument" class="coursePreview_btn" style="color: #111;"><i class='fa fa-play-circle-o fa-2x' aria-hidden='true'></i></a>
+                                                <input type="hidden" id="DocumentId_@item.CourseId" value="@item.CourseFile" />
+                                            </td>
+                                        }
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <br />
+                }
+            }
+        }
+        else
+        {
+            <table border="0" class="table table-bordered dataTable table-hover" id="">
+                <thead>
+                    <tr>
+                        <th width="250px">
+                            @LMSResourse.User.UserCourse.thCourse
+                        </th>
+                        <th>
+                            @LMSResourse.User.UserCourse.thStatus
+                        </th>
+                        <th>
+                            @LMSResourse.User.UserCourse.thExpDate
+                        </th>
+                        <th>
+                            @LMSResourse.User.UserCourse.thLastAccessDate
+                        </th>
+                        <th>
+                            @LMSResourse.User.UserCourse.thScore
+                        </th>
+                        <th>
+                            @LMSResourse.User.UserCourse.thStart
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" style="text-align:center">
+                            No data available in table
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+<div class="modal fade" id="mCourseDetail" tabindex="-2" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Course detail</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thName:</label>
+                        </div>
+                        <div class="col-md-8" id="thName">
+                        </div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thContenttype</label>
+                        </div><div class="col-md-8" id="thContenttype"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.thCategory:</label>
+                        </div><div class="col-md-8" id="thCategory"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.fldPassMarks:</label>
+                        </div><div class="col-md-8" id="thPassmarks"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.fldIsMobile:</label>
+                        </div><div class="col-md-8" id="thIsmobile"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.fldMandatory:</label>
+                        </div><div class="col-md-8" id="thIsmandatory"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.fldCourseDurationInMin:</label>
+                        </div><div class="col-md-8" id="thCourseDuration"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.Admin.Course.fldDescription:</label>
+                        </div><div class="col-md-8" id="thDescription"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thStatus</label>
+                        </div><div class="col-md-8" id="thStatus"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thLastAccessDate</label>
+                        </div><div class="col-md-8" id="thLastAccessDate"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thExpDate</label>
+                        </div><div class="col-md-8" id="thExpDate"></div>
+                    </div>
+                    <div class="form-row" style="padding-top: 5px;">
+                        <div class="col-md-4">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thStart</label>
+                        </div><div class="col-md-8" id="thStartPreview"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">@LMSResourse.Common.Common.btnCancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-wide fade width80" id="mCourseFeedback" tabindex="-2" role="dialog" aria-labelledby="myModalLabel2" aria-hidden="true">
+    <div class="modal-dialog fdialog width80">
+        <div class="modal-content fcontent width150">
+            <div class="modal-header">
+                <span class="modal-title" id="feedbackModalLabel">Course feedback</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    @*<div class="form-row frmshow" style="padding-top: 5px;">
+                            <div class="col-md-4">
+                                <label style="color:#0867BE">@LMSResourse.User.UserCourse.thName:</label>
+                            </div>
+                            <div class="col-md-8" id="thNamefeedback">
+                            </div>
+                        </div>*@
+                    <div class="form-row frmshow" style="padding-top: 5px;">
+                        <div class="col-md-2">
+                            <label style="color:#0867BE">@LMSResourse.User.UserCourse.thContenttype</label>
+                        </div><div class="col-md-10" id="thContenttypefeedback"></div>
+                    </div>
+                    <div class="form-row frmshow" style="padding-top: 5px;">
+                        <div class="col-md-2">
+                            <label style="color:#0867BE">Rating:</label>
+                        </div>
+                        <div class="col-md-10" id="thRating">
+                            <div class="my-rating"></div>
+                        </div>
+                    </div>
+                    <div class="form-row frmshow" style="padding-top: 5px;">
+                        <div class="col-md-2">
+                            <label style="color:#0867BE">Comments:</label>
+                        </div>
+                        <div class="col-md-10" id="thContenttype">
+                            <textarea class="form-control" id="txtFeedback" rows="4" maxlength="250"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row frmshow" style="padding-top: 5px;" id="dvSurvey">
+                        <div class="col-md-12">
+                            <form action="#" method="post" target="irmSurvey" id="frmSurvey">
+                                <input type='hidden' id='ShowPanel' name='ShowPanel' value='false' />
+                                Please <a href="#" id="btnSurvey" title='@LMSResourse.Common.ApplicationMenu.tooltipStart' class='courseLaunch_btn'>click here</a> to provide course feedback
+                            </form>
+                        </div>
+                    </div>
+                    <div class="form-row dv_iframe" style="padding-top: 5px; height: 418px; display:none;">
+                        <div class="col-md-12" id="dvSurvey">
+                            <!-- when the form is submitted, the server response will appear in this iframe -->
+                            <iframe name="irmSurvey" id="irmSurvey" src="#" class="iframsurvey" style="width:100%; height:100%; overflow:hidden; border:0px;" scrolling="no"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-primary" value="@LMSResourse.Common.Common.btnSave" id="submit" />&nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">@LMSResourse.Common.Common.btnCancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @Scripts.Render("~/bundles/datatable-js")
+    <script src="@Url.Content("~/Scripts/base64.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.star-rating-svg.js")"></script>
+    <script src="@Url.Content("~/Scripts/lms/lms.contents.learnerview.utilities.js")"></script>
+    <script type="text/javascript">
+        //tdLaunch,courseDetail
+        $(document).ready(function () {
+            var winAvailWidth = $(window).width();
+            resizeWindow(winAvailWidth)
+            $(window).resize(function () {
+                // This will execute whenever the window is resized
+                $(window).height(); // New height
+                winAvailWidth = $(window).width(); // New width
+                resizeWindow(winAvailWidth);
+            });
+
+            popupCourseDetail();
+            $('#thStartPreview').click(function (e) {
+                $("#mCourseDetail").modal('hide');
+            });
+
+            var courseId = 0;
+            var courseType = 0;
+            var courseFeedbackID = 0;
+            var quizId = 0;
+
+            $(".courseFeedback_btn").each(function () {
+                $(this).click(function () {
+                    courseId = 0;
+                    courseType = 0;
+                    courseFeedbackID = 0;
+
+                    $("#txtFeedback").val("");
+                    courseId = $(this).attr("data-id");
+                    courseType = $(this).attr("data-id1");
+                    //$("#QuizID").val($(this).attr("data-id2"));
+                    quizId = $(this).attr("data-id2");
+
+                    $(".my-rating").starRating('setRating', 0);
+                    //$("#thNamefeedback").text($(this).parent().parent().find("td:nth-child(1)").text());
+                    $("#feedbackModalLabel").html("<b>Course feedback:</b> " + $(this).parent().parent().find("td:nth-child(1)").text());
+                    $("#thContenttypefeedback").text($(this).parent().parent().find("td:nth-child(2)").text());
+
+                    $.ajax({
+                        type: 'GET',
+                        url: pathname1 + "/UserCourse/AjaxHandlerGetFeedback",
+                        contentType: "application/json; charset=utf-8",
+                        data: { CourseId: courseId, CourseType: courseType },
+                        dataType: "json",
+                        async: false,
+                        cache: false,
+                        success: function (data) {
+                            courseFeedbackID = data.CourseFeedbackID;
+                            $(".my-rating").starRating('setRating', data.Rating);
+                            $("#txtFeedback").val(data.Feedback);
+                        },
+                    });
+
+                    $(".frmshow").show();
+                    $("#dvSurvey").show();
+                    if (quizId.trim() == "" || quizId.trim() == "0") {
+                        quizId = 0;
+                        $("#dvSurvey").hide();
+                    }
+                    $(".dv_iframe").hide();
+                    //$(".modal-content").css("margin-left", "auto");
+                    $("#mCourseFeedback").modal('show');
+                });
+            });
+
+            $(".my-rating").starRating({
+                totalStars: 5,
+                initialRating: 0,
+                strokeColor: '#894A00',
+                emptyColor: 'lightgray',
+                hoverColor: 'salmon',
+                activeColor: 'crimson',
+                strokeWidth: 10,
+                starSize: 25,
+                useFullStars: true
+            });
+
+            $("#thStartSurvey").click(function () {
+                $("#mCourseFeedback").modal('hide');
+            });
+
+            $("#submit").click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: pathname1 + "/UserCourse/AjaxHandlerAddUpdateFeedback",
+                    contentType: "application/json; charset=utf-8",
+                    data: '{"CourseId":' + courseId + ',"Rating":' + $(".my-rating").starRating('getRating') + ',"Feedback":"' + $("#txtFeedback").val() + '","CourseFeedbackID":' + courseFeedbackID + ',"CourseType":' + courseType + ',"SurveyID":' + quizId + '}',
+                    dataType: "json",
+                    async: false,
+                    cache: false,
+                    success: function (data) {
+                        alert("Course feedback updated successfully.");
+                        $("#mCourseFeedback").modal('hide');
+                    },
+                });
+
+            });
+
+            $("#btnSurvey").click(function () {
+                $(".frmshow").hide();
+                $("#frmSurvey").attr("action", pathname1 + "/startquiz/start?QuizID=" + quizId + "&IsSurvey=true");
+                $("#frmSurvey").submit();
+                $('#irmSurvey').load(function () {
+                    $(".dv_iframe").show();
+                });
+            });
+
+            //$(".Assessment_btn").each(function () {
+            //    $(this).click(function () {
+            //        var courseId = $(this).attr("data-id");
+            //        window.open(pathname1 + "/Assessment/index?quizID=" + courseId, "Preview", "width=" + (screen.availWidth - 20) + ",height=" + (screen.availHeight - 60) + ",toolbar=no,menubar=no,resizable=yes,scrollbars=yes");
+            //    });
+            //});
+        });
+
+        function Assessment(id)
+        {
+            var courseId = id;
+            window.open(pathname1 + "/Assessment/index?quizID=" + courseId, "Preview", "width=" + (screen.availWidth - 20) + ",height=" + (screen.availHeight - 60) + ",toolbar=no,menubar=no,resizable=yes,scrollbars=yes");
+        }
+
+
+        function resizeWindow(winAvailWidth) {
+            if (winAvailWidth < 680) {
+                $(".colhide").hide();
+                $("#thStart").css("padding-left", "0px");
+                $(".courseDetail").each(function () {
+                    if ($(this).parent().attr("data-id3") == "False" || $(this).parent().attr("data-id3") == "") {
+                        $(this).parent().next().next().next().next().next().next().next().children().hide();
+                    }
+                });
+
+                $("#mCourseFeedback").removeClass("width80");
+                $(".fdialog").removeClass("width80");
+                $(".fcontent").removeClass("width150");
+            }
+            else {
+                $(".colhide").show();
+                $(".courseDetail").each(function () {
+                    $(this).parent().next().next().next().next().next().next().children().show();
+                });
+
+                $("#mCourseFeedback").addClass("width80");
+                $(".fdialog").addClass("width80");
+                $(".fcontent").addClass("width150");
+            }
+        }
+
+        function popupCourseDetail() {
+            $(".courseDetail").each(function () {
+                $(this).click(function () {
+                    var preview = "";
+                    var $row = $(this).closest("tr");
+                    $("#thName").text($row.find("td:nth-child(1)").text());
+                    $("#thContenttype").text($row.find("td:nth-child(2)").text());
+                    $("#thStatus").text($row.find("td:nth-child(3)").text());
+                    $("#thExpDate").text($row.find("td:nth-child(4)").text());
+                    $("#thLastAccessDate").text($row.find("td:nth-child(5)").text());
+                    $("#thStartPreview").html($row.find("td:nth-child(8)").html());
+
+                    $("#thCategory").text($row.find("td").attr("data-id7").replace(/%20/g, " "));
+                    $("#thPassmarks").text($row.find("td").attr("data-id2").replace(/%20/g, " "));
+                    $("#thIsmobile").text(($row.find("td").attr("data-id3") == "True" ? "Yes" : "No"));
+                    $("#thIsmandatory").text(($row.find("td").attr("data-id5") == "True" ? "Mandatory" : "Optional"));
+                    $("#thCourseDuration").text($row.find("td").attr("data-id4").replace(/%20/g, " "));
+                    $("#thDescription").text($row.find("td").attr("data-id1").replace(/%20/g, " "));
+
+                    $("#mCourseDetail").modal('show');
+                });
+            });
+        }
+    </script>
+}
