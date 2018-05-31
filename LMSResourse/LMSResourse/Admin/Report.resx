@@ -1,0 +1,339 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="lblCompletedCourse" xml:space="preserve">
+    <value>Completed courses</value>
+  </data>
+  <data name="lblExportinexcel" xml:space="preserve">
+    <value>Export in excel</value>
+  </data>
+  <data name="lblExportinPDF" xml:space="preserve">
+    <value>Export in pdf</value>
+  </data>
+  <data name="lblGenerateReport" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="lblNeverLoginUsers" xml:space="preserve">
+    <value>Never logged in</value>
+  </data>
+  <data name="lblTotalActiveusers" xml:space="preserve">
+    <value>Total active users</value>
+  </data>
+  <data name="lblTotalAssignments" xml:space="preserve">
+    <value>Total Assignments</value>
+  </data>
+  <data name="lblTotalCategories" xml:space="preserve">
+    <value>Total subjects</value>
+  </data>
+  <data name="lblTotalCourses" xml:space="preserve">
+    <value>Total courses</value>
+  </data>
+  <data name="lblTotalGroups" xml:space="preserve">
+    <value>Total groups</value>
+  </data>
+  <data name="lblTotalOrganisation" xml:space="preserve">
+    <value>Total organisations</value>
+  </data>
+  <data name="lblTotalUsers" xml:space="preserve">
+    <value>Total Users</value>
+  </data>
+  <data name="thAssigned" xml:space="preserve">
+    <value>Assigned</value>
+  </data>
+  <data name="thCategory" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="thCompleted" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="thCompletionDate" xml:space="preserve">
+    <value>Completion date</value>
+  </data>
+  <data name="thCourse" xml:space="preserve">
+    <value>Course</value>
+  </data>
+  <data name="thEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="thEmployeeId" xml:space="preserve">
+    <value>Employee id</value>
+  </data>
+  <data name="thFirstname" xml:space="preserve">
+    <value>First name</value>
+  </data>
+  <data name="thIncomplete" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="thLastName" xml:space="preserve">
+    <value>Last name</value>
+  </data>
+  <data name="thNotStarted" xml:space="preserve">
+    <value>Not started</value>
+  </data>
+  <data name="thOrganisation" xml:space="preserve">
+    <value>Organisation</value>
+  </data>
+  <data name="thRegistrationDate" xml:space="preserve">
+    <value>Registration date</value>
+  </data>
+  <data name="thScore" xml:space="preserve">
+    <value>Score (%)</value>
+  </data>
+  <data name="thStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="thNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="ThPercent" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="lblOrganisationLicenceReport" xml:space="preserve">
+    <value>Organisation Licence Report</value>
+  </data>
+  <data name="thExpiryDate" xml:space="preserve">
+    <value>Expiry date</value>
+  </data>
+  <data name="lblActiveUsers" xml:space="preserve">
+    <value>Active users</value>
+  </data>
+  <data name="lblAssignment" xml:space="preserve">
+    <value>Assignment</value>
+  </data>
+  <data name="lblAssignments" xml:space="preserve">
+    <value>Assignments</value>
+  </data>
+  <data name="lblCompleted" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="lblInCompleted" xml:space="preserve">
+    <value>In Completed</value>
+  </data>
+  <data name="lblNotStarted" xml:space="preserve">
+    <value>Not Started</value>
+  </data>
+  <data name="lblOrganisationGroupUserDetail" xml:space="preserve">
+    <value>Organisation group user detail</value>
+  </data>
+  <data name="lblOrganisationUserReport" xml:space="preserve">
+    <value>Organisation User Report</value>
+  </data>
+  <data name="lblToggleDropdown" xml:space="preserve">
+    <value>Toggle Dropdown</value>
+  </data>
+  <data name="thCourseUserDetail" xml:space="preserve">
+    <value>Course user Detail</value>
+  </data>
+  <data name="thOrganisationGroupDetail" xml:space="preserve">
+    <value>Organisation Group Detail</value>
+  </data>
+  <data name="thUserDetail" xml:space="preserve">
+    <value>User Detail</value>
+  </data>
+  <data name="tooltipOrganisationUserReport" xml:space="preserve">
+    <value>Organisation user report</value>
+  </data>
+  <data name="thUserCourseDetail" xml:space="preserve">
+    <value>User course detail</value>
+  </data>
+  <data name="lblApril" xml:space="preserve">
+    <value>April</value>
+  </data>
+  <data name="lblAugust" xml:space="preserve">
+    <value>August</value>
+  </data>
+  <data name="lblDecember" xml:space="preserve">
+    <value>December</value>
+  </data>
+  <data name="lblFebruary" xml:space="preserve">
+    <value>February</value>
+  </data>
+  <data name="lblJanuary" xml:space="preserve">
+    <value>January</value>
+  </data>
+  <data name="lblJuly" xml:space="preserve">
+    <value>July</value>
+  </data>
+  <data name="lblJune" xml:space="preserve">
+    <value>June</value>
+  </data>
+  <data name="lblLanguage" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="lblMarch" xml:space="preserve">
+    <value>March</value>
+  </data>
+  <data name="lblMay" xml:space="preserve">
+    <value>May</value>
+  </data>
+  <data name="lblNovember" xml:space="preserve">
+    <value>November</value>
+  </data>
+  <data name="lblOctober" xml:space="preserve">
+    <value>October</value>
+  </data>
+  <data name="lblSeptember" xml:space="preserve">
+    <value>September</value>
+  </data>
+  <data name="lblTotalUserCoursePassPercentage" xml:space="preserve">
+    <value>Total users course passed</value>
+  </data>
+  <data name="lblTotalUserCourseRegistered" xml:space="preserve">
+    <value>Users registered</value>
+  </data>
+  <data name="lblCourseStatusDetail" xml:space="preserve">
+    <value>Course Status Detail</value>
+  </data>
+  <data name="lblInProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="tooltipUserAssesmentReport" xml:space="preserve">
+    <value>User assessment report</value>
+  </data>
+  <data name="tooltipUserAssessmentDetail" xml:space="preserve">
+    <value>User assessment detail</value>
+  </data>
+  <data name="lblAnd" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="lblAvgMarks" xml:space="preserve">
+    <value>Average marks obtained</value>
+  </data>
+  <data name="lblHours" xml:space="preserve">
+    <value>hours</value>
+  </data>
+  <data name="lblMinutes" xml:space="preserve">
+    <value>minutes</value>
+  </data>
+  <data name="lblNoOfCourses" xml:space="preserve">
+    <value>No of courses</value>
+  </data>
+  <data name="lblParentHomePage" xml:space="preserve">
+    <value>Parent home page</value>
+  </data>
+  <data name="lblTeacherHomePage" xml:space="preserve">
+    <value>Teacher Home page</value>
+  </data>
+  <data name="lblTotalTimeSpent" xml:space="preserve">
+    <value>Total time spent</value>
+  </data>
+  <data name="lblAtemptedCourses" xml:space="preserve">
+    <value>No of attempted courses</value>
+  </data>
+</root>

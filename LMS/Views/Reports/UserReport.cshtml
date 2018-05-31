@@ -1,0 +1,252 @@
+﻿@model LMS.Models.Rp_UserReport
+@{
+    ViewBag.Title = "UserReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    @Styles.Render("~/Content/jquery.dataTables.min.css");
+}
+@using (Html.BeginForm("UserReport", "Reports", FormMethod.Post, new { @id = "myform" }))
+{
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Admin">@LMSResourse.Common.ApplicationMenu.lblHome</a></li>
+                <li class="breadcrumb-item"><a href="~/Reports">@LMSResourse.Common.ApplicationMenu.lblReports</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@LMSResourse.Common.ApplicationMenu.tooltipUserReport</li>
+            </ol>
+        </nav>
+        <div style="align-items:center;text-align:center;vertical-align:middle;">
+            <div id="errormessage" style="display:none;" class="alert alert-danger" role="alert"></div>
+            @Html.Hidden("ActionType", "0")
+        </div>
+        <div class="form-group">
+            @*<div class="form-row">
+                <div class="col-lg-5">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <i class="fa fa-pie-chart"></i> @LMSResourse.Admin.Report.lblOrganisationGroupUserDetail
+                        </div>
+                        <div class="card-body">
+                            <canvas id="myPieChart" width="100%" height="50"></canvas>
+                        </div>
+                        <div class="card-footer small text-muted"></div>
+                    </div>
+                </div>
+            </div>*@
+            <div class="form-row">
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.OrganisationId)*&nbsp;@Html.DropDownList("OrganisationId", (IEnumerable<SelectListItem>)ViewBag.OrganisationList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control", @onchange = "FillGroup()" })
+                </div>
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.GroupId)*&nbsp;@Html.DropDownList("GroupId", Enumerable.Empty<SelectListItem>(), @LMSResourse.Common.Common.dropAll, new { @class = "form-control", @aria_describedby = "basic-addon2" })
+                </div>
+                <div class="col-md-4" style="padding-top: 32px;">
+                    <button type="submit" class="btn btn-primary" id="create">@LMSResourse.Admin.Report.lblGenerateReport</button>
+                    <button type="button" class="btn btn-primary" data-toggle="dropdown" style="margin-left: -10px;">
+                        <i class="fa fa-caret-square-o-down"></i>
+                        <span class="caret"></span>
+                        <span class="sr-only">@LMSResourse.Admin.Report.lblToggleDropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li class="dropdown-item"><a href="#" id="Exportinexcel">@LMSResourse.Admin.Report.lblExportinexcel</a></li>
+                        <li class="dropdown-item"><a href="#" id="ExportinPdf">@LMSResourse.Admin.Report.lblExportinPDF</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="reportData" style="display:none;">
+            <div class="table-responsive margin-top-20">
+                <table border="0" class="table table-bordered dataTable table-hover" id="myDataTable">
+                    <thead>
+                        <tr>
+                            <th class="border-left-top-bottom" style="width:200px">@LMSResourse.Admin.User.thEmailAddress</th>
+                            <th style="width:220px">Name</th>
+                            <th>Assigned courses</th>
+                            <th>Completed</th>
+                            <th>In Progress</th>
+                            <th class="border-right-top-bottom">Not started</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script src="@Url.Content("~/Include/startbootstrap-sb-admin/vendor/chart.js/Chart.min.js")"></script>
+    <script type="text/javascript">
+        jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
+            var _that = this;
+
+            if (iDelay === undefined) {
+                iDelay = 250;
+            }
+
+            this.each(function (i) {
+                $.fn.dataTableExt.iApiIndex = i;
+                var
+                    $this = this,
+                    oTimerId = null,
+                    sPreviousSearch = null,
+                    anControl = $('input', _that.fnSettings().aanFeatures.f);
+
+                anControl.unbind('keyup search input').bind('keyup search input', function () {
+                    var $$this = $this;
+
+                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                        window.clearTimeout(oTimerId);
+                        sPreviousSearch = anControl.val();
+                        oTimerId = window.setTimeout(function () {
+                            $.fn.dataTableExt.iApiIndex = i;
+                            _that.fnFilter(anControl.val());
+                        }, iDelay);
+                    }
+                });
+
+                return this;
+            });
+            return this;
+        }
+
+        $(document).ready(function () {
+            $("#mainmenu li").removeClass("active");
+            $("#mainmenu li:eq(8)").addClass("active");
+            $("#reportData").show();
+            fillGrid();
+            $("#create").click(function (e) {
+                e.preventDefault();
+                $("#reportData").show();
+                fillGrid();
+            });
+
+            $("#Exportinexcel").click(function (e) { $("#ActionType").val("0"); $('#myform').submit(); });
+            $("#ExportinPdf").click(function (e) { $("#ActionType").val("1"); $('#myform').submit(); });
+
+            function fillGrid() {
+
+                var fileUrl = "../Include/datatablefiles/";
+                var filename = "en-us.txt";
+                if (filename == '')
+                    fileUrl = fileUrl + "en-us.txt";
+                else
+                    fileUrl = fileUrl + filename;
+                //var Display = parseInt('@Session["ListiDisplayLength"]');
+
+                var oTable = $('#myDataTable').dataTable({
+                    "bServerSide": true,
+                    "sAjaxSource": "../Reports/AjaxHandlerUserReport",
+                    "bProcessing": false,
+                    "bStateSave": false,
+                    "bDestroy": true,
+                    "bFilter": false,
+                    "bInfo": false,
+                    // "bLengthChange": false,
+                    // "bPaginate": false,
+                    "scrollX": "500px;",
+                    "sPaginationType": "full_numbers",
+                    "sDom": '<"top"lfip>rt<"bottom"ip<"clear">',
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@LMSResourse.Common.Common.GridAll']],
+                    "oLanguage": { "sUrl": fileUrl },
+                    "fnServerParams": function (aoData) {
+                        aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + ($('#GroupId').val() == '' ? '0' : $('#GroupId').val()) })
+                    },
+                    "aoColumns": [
+                                {
+                                    "bSortable": false,
+                                    "fnRender": function (oObj) {
+                                        return ('<a style="color:blue;" class="UserDetail" href="#" data-target="#mQueryDetail">' + oObj.aData[0].toString() + '</a> <input type="hidden" id="userid" value="' + oObj.aData[6].toString() + '" />');
+                                    }
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                    ],
+                    "fnDrawCallback": function (oSettings) {
+                    }
+                });
+
+                setTimeout(function () { oTable.fnSetFilteringDelay(600); }, 500);
+            }
+
+            $('#myDataTable > tbody').on('click', '.UserDetail', function () {
+
+                var id = "";
+                var $row = $(this).closest("tr");
+                id = $row.find('#userid').val();
+                if (id != "0")
+                {
+                    window.location = 'UserInfo/' + id;
+                }
+                else{ return false; }
+            });
+        });
+
+        ctx = document.getElementById("myPieChart");
+        myPieChart = new Chart(ctx, {
+            type: "pie",
+            data: {
+                labels: [
+                    "@LMSResourse.ApplicationMenu.lblOrganisations",
+                    "@LMSResourse.ApplicationMenu.lblGroups",
+                    "@LMSResourse.ApplicationMenu.lblUsers",
+                ],
+                datasets: [{
+                    data: [
+                        parseInt(@ViewBag.totalOrganisations),
+                        parseInt(@ViewBag.totalGroups),
+                        parseInt(@ViewBag.totalUsers)
+                    ],
+                    backgroundColor: ["#007bff", "#dc3545", "#ffc107"]
+                }
+                ]
+            }
+        });
+
+        function FillGroup() {
+            var organisationId = $('#OrganisationId').val();
+            if (organisationId != 0 && organisationId != null && organisationId != "") {
+                $.ajax({
+                    url: '../Reports/AjaxHandlerGetGroup',
+                    contentType: "application/x-www-form-urlencoded",
+                    type: "GET",
+                    dataType: "JSON",
+                    async: false,
+                    data: { OrgId: organisationId },
+                    error: function (xmlHttpRequest, errorText, thrownError) {
+                        return false;
+                    },
+                    success: function (data) {
+                        $("#GroupId").html(""); // clear before appending new list
+                        $("#GroupId").append($('<option></option>').val(0).html("All"));
+                        $.each(data, function (i, data) {
+                            $("#GroupId").append(
+                                $('<option></option>').val(data.GroupID).html(data.GroupName));
+                        });
+                    },
+                    complete: function (data) {
+                    }
+                });
+            }
+            else
+            {
+                $("#GroupId").html(""); // clear before appending new list
+                $("#GroupId").append($('<option></option>').val(0).html("All"));
+
+            }
+        }
+
+
+    </script>
+}

@@ -1,0 +1,286 @@
+﻿@model LMS.Models.Rp_CourseReport
+@{
+    ViewBag.Title = "UserReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    @Styles.Render("~/Content/jquery.dataTables.min.css");
+}
+@using (Html.BeginForm("CourseReport", "Reports", FormMethod.Post, new { @id = "myform" }))
+{
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Admin">@LMSResourse.Common.ApplicationMenu.lblHome</a></li>
+                <li class="breadcrumb-item"><a href="~/Reports">@LMSResourse.Common.ApplicationMenu.lblReports</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@LMSResourse.Common.ApplicationMenu.tooltipCourseReport</li>
+            </ol>
+        </nav>
+        <div style="align-items:center;text-align:center;vertical-align:middle;">
+            <div id="errormessage" style="display:none;" class="alert alert-danger" role="alert"></div>
+            @Html.Hidden("ActionType", "0")
+        </div>
+        <div class="form-group">
+            @*<div class="form-row">
+                <div class="col-lg-5">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <i class="fa fa-pie-chart"></i> @LMSResourse.Admin.Report.thUserCourseDetail
+                        </div>
+                        <div class="card-body">
+                            <canvas id="myPieChart" width="100%" height="70"></canvas>
+                        </div>
+                        <div class="card-footer small text-muted"></div>
+                    </div>
+                </div>
+            </div>*@
+            <div class="form-row">
+                <div class="col-md-4">@Html.LabelFor(model => model.OrganisationId)*&nbsp;@Html.DropDownList("OrganisationId", (IEnumerable<SelectListItem>)ViewBag.OrganisationList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control", @aria_describedby = "basic-addon2" })</div>
+                <div class="col-md-4">@Html.LabelFor(model => model.GroupId) &nbsp;&nbsp;@Html.DropDownList("GroupId", (IEnumerable<SelectListItem>)ViewBag.GroupsList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control", disabled = "true", @aria_describedby = "basic-addon2" })</div>
+               @* <div class="col-md-4">@Html.LabelFor(model => model.CourseId) &nbsp;&nbsp;@Html.DropDownList("CourseId", (IEnumerable<SelectListItem>)ViewBag.CourseList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control", @aria_describedby = "basic-addon2" })</div>*@
+                <div class="col-md-4">
+                    <div class="col-md-2">&nbsp;</div>
+                    <button type="submit" class="btn btn-primary" id="create" style="margin-top: 7px;">@LMSResourse.Admin.Report.lblGenerateReport</button>
+                    <button type="button" class="btn btn-primary" data-toggle="dropdown" style="margin-left: -10px;margin-top: 7px;">
+                        <i class="fa fa-caret-square-o-down"></i>
+                        <span class="caret"></span>
+                        <span class="sr-only">@LMSResourse.Admin.Report.lblToggleDropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu" style="left:0px;">
+                        <li class="dropdown-item"><a href="#" id="Exportinexcel">@LMSResourse.Admin.Report.lblExportinexcel</a></li>
+                        <li class="dropdown-item"><a href="#" id="ExportinPdf">@LMSResourse.Admin.Report.lblExportinPDF</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="" id="reportData">
+            <div class="table-responsive margin-top-20">
+                <table border="0" class="table table-bordered dataTable table-hover" id="myDataTable">
+                    <thead>
+                        <tr>
+                            <th class="border-left-top-bottom" style="width:220px">@LMSResourse.Admin.Report.thCourse</th>
+                            <th>@LMSResourse.Admin.Report.thCategory</th>
+                            <th>@LMSResourse.Admin.Report.thAssigned</th>
+                            <th>@LMSResourse.Admin.Report.thCompleted</th>
+                            <th>@LMSResourse.Admin.Report.thIncomplete</th>
+                            <th class="border-right-top-bottom">@LMSResourse.Admin.Report.thNotStarted</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script src="@Url.Content("~/Include/startbootstrap-sb-admin/vendor/chart.js/Chart.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/common-functions-util.js")"></script>
+    <script type="text/javascript">
+        jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
+            var _that = this;
+
+            if (iDelay === undefined) {
+                iDelay = 250;
+            }
+
+            this.each(function (i) {
+                $.fn.dataTableExt.iApiIndex = i;
+                var
+                    $this = this,
+                    oTimerId = null,
+                    sPreviousSearch = null,
+                    anControl = $('input', _that.fnSettings().aanFeatures.f);
+
+                anControl.unbind('keyup search input').bind('keyup search input', function () {
+                    var $$this = $this;
+
+                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                        window.clearTimeout(oTimerId);
+                        sPreviousSearch = anControl.val();
+                        oTimerId = window.setTimeout(function () {
+                            $.fn.dataTableExt.iApiIndex = i;
+                            _that.fnFilter(anControl.val());
+                        }, iDelay);
+                    }
+                });
+
+                return this;
+            });
+            return this;
+        };
+
+        $(document).ready(function () {
+            $("#mainmenu li").removeClass("active");
+            $("#mainmenu li:eq(8)").addClass("active");
+
+            doAjax("../Reports/CheckIsUserindividualAssigned", { Oid: ($("#OrganisationId").val() != null && $("#OrganisationId").val() != "" ? $("#OrganisationId").val() : "0") }, function (data) {
+                //console.log(data.data);
+                if (data.data) {
+                    $("#GroupId").attr("disabled", true);
+                } else {
+                    $("#GroupId").attr("disabled", false);
+                }
+            });
+            //$("#reportData").show();
+            fillGrid();
+            $("#OrganisationId").change(function () {
+                if ($("#OrganisationId").val() != 0 && $("#OrganisationId").val() != null && $("#OrganisationId").val() != "") {
+                    $("#GroupId").removeAttr("disabled");
+                    var x = $('#GroupId option').filter(function () { return $(this).html() == '@LMSResourse.Common.Common.dropAll'; });
+                    if (x != null) { $(x).attr('selected', 'selected'); }
+                    $('#GroupId option').each(function () {
+                        var group_org_value = this.value.toString();
+                        if ((group_org_value).split("~")[1] == $("#OrganisationId").val().toString()) {
+                            $(this).show();
+                        } else
+                            $(this).hide();
+                    });
+
+                    $('#GroupId option').eq(0).show();
+
+                    $.ajax({
+                        url: "../Reports/CheckIsUserindividualAssigned",
+                        data: { Oid: ($("#OrganisationId").val() != "" ? $("#OrganisationId").val() : "0") },
+                        success: function (data) {
+                            //console.log(data.data);
+                            if (data.data) {
+                                $("#GroupId").attr("disabled", true);
+                            }
+                        }
+                    });
+                }
+                else {
+                    //$("#GroupId").attr("disabled", true);
+                    var x = $('#GroupId option').filter(function () { return $(this).html() == '@LMSResourse.Common.Common.dropAll'; });
+                    $(this).show();
+                    if (x != null) { $(x).attr('selected', 'selected'); }
+                    $('#GroupId option').each(function () {
+                        $(this).show();
+                    });
+                }
+
+                //doAjax("../Reports/GetCoursesForGroupByID", { gid: "0" }, function (data) {
+                //    $("#CourseId").html(data.data);
+                //});
+            });
+
+            //$("#GroupId").change(function () {
+            //    var grp_id = $(this).val();
+
+            //    if (grp_id != 0 && grp_id != null && grp_id != "") {
+            //        if (grp_id.indexOf("~") > -1) {
+            //            var gID = grp_id.split('~')[0];
+
+            //            doAjax("../Reports/GetCoursesForGroupByID", { gid: gID }, function (data) {
+            //                console.log(data.data);
+            //                $("#CourseId").html(data.data);
+            //            });
+            //        } else {
+            //            doAjax("../Reports/GetCoursesForGroupByID", { gid: "0" }, function (data) {
+            //                $("#CourseId").html(data.data);
+            //            });
+            //        }
+            //    }
+            //});
+            $("#create").click(function (e) {
+                e.preventDefault();
+                $("#reportData").show();
+                fillGrid();
+
+            });
+
+            $("#Exportinexcel").click(function (e) { $("#ActionType").val("0"); $('#myform').submit(); });
+            $("#ExportinPdf").click(function (e) { e.preventDefault(); $("#ActionType").val("1"); $('#myform').submit(); });
+            
+            function fillGrid() {
+                var fileUrl = "../Include/datatablefiles/";
+                var filename = "en-us.txt";
+                if (filename == '')
+                    fileUrl = fileUrl + "en-us.txt";
+                else
+                    fileUrl = fileUrl + filename;
+                //var Display = parseInt('@Session["ListiDisplayLength"]');
+
+                var oTable = $('#myDataTable').dataTable({
+                    "bServerSide": true,
+                    "sAjaxSource": "../Reports/AjaxHandlerCourseReport",
+                    "bProcessing": false,
+                    "bStateSave": false,
+                    "bDestroy": true,
+                    "bFilter": false,
+                    "bInfo": false,
+                    // "bLengthChange": false,
+                    // "bPaginate": false,
+                    "scrollX": "500px;",
+                    "sPaginationType": "full_numbers",
+                    "sDom": '<"top"lfip>rt<"bottom"ip<"clear">',
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@LMSResourse.Common.Common.GridAll']],
+                    "oLanguage": { "sUrl": fileUrl },
+                    "fnServerParams": function (aoData) {
+                        //aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + ($('#CourseId').val() == '' ? '0' : $('#CourseId').val()) + "~" + ($('#GroupId').val() == '' ? '0' : $('#GroupId').val()) })
+                        aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + '0' + "~" + ($('#GroupId').val() == '' ? '0' : $('#GroupId').val()) })
+                    },
+                    "aoColumns": [
+                                {
+                                    "bSortable": false,
+                                    "fnRender": function (oObj) {
+                                        return ('<a style="color:blue;" class="CourseDetail" href="#" data-target="#mQueryDetail">' + oObj.aData[0].toString() + '</a> <input type="hidden" id="courseid" value="' + oObj.aData[6].toString() + '" /><input type="hidden" id="isquiz" value="' + oObj.aData[7].toString() + '" />');
+                                    }
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                }
+                    ],
+                    "fnDrawCallback": function (oSettings) {
+                    }
+                });
+                setTimeout(function () { oTable.fnSetFilteringDelay(600); }, 500);
+            }
+            $('#myDataTable > tbody').on('click', '.CourseDetail', function () {
+
+                var Cid = "",Type="";
+                var $row = $(this).closest("tr");
+                Cid = $row.find('#courseid').val();
+                Type = $row.find('#isquiz').val();
+                if (Cid != "0" && Type != '') {
+                    window.location = 'CourseInfo/?id=' + Cid + '&type=' + Type;
+                }
+                else { return false; }
+            });
+            @*var userCourseData = @Html.Raw(Json.Encode(@ViewBag.UserCourseData));
+            myPieChart = new Chart($("#myPieChart"), {
+                type: "pie",
+                data: {
+                    labels: [
+                        "@LMSResourse.Admin.Report.lblAssignment",
+                        "@LMSResourse.Admin.Report.lblInCompleted",
+                        "@LMSResourse.Admin.Report.lblNotStarted",
+                        "@LMSResourse.Admin.Report.lblCompleted",
+                    ],
+                    datasets: [{
+                        data: [
+                            parseInt(userCourseData[0].TotalAssignment),
+                            parseInt(userCourseData[0].InCompleted),
+                            parseInt(userCourseData[0].NotStarted),
+                            parseInt(userCourseData[0].Completed)
+                        ],
+                        backgroundColor: ["#007bff", "#dc3545", "#ffc107"]
+                    }
+                    ]
+                }
+            });*@
+        });
+    </script>
+}
+
+
