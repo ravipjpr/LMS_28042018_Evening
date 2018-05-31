@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="lblActiveUsers" xml:space="preserve">
+    <value>सक्रिय उपयोगकर्ता</value>
+  </data>
+  <data name="lblApril" xml:space="preserve">
+    <value>अप्रैल</value>
+  </data>
+  <data name="lblAssignment" xml:space="preserve">
+    <value>असाइनमेंट</value>
+  </data>
+  <data name="lblAssignments" xml:space="preserve">
+    <value>कार्य</value>
+  </data>
+  <data name="lblAugust" xml:space="preserve">
+    <value>अगस्त</value>
+  </data>
+  <data name="lblCompleted" xml:space="preserve">
+    <value>पूर्ण कर लिया है</value>
+  </data>
+  <data name="lblCompletedCourse" xml:space="preserve">
+    <value>पूर्ण पाठ्यक्रम</value>
+  </data>
+  <data name="lblDecember" xml:space="preserve">
+    <value>दिसंबर</value>
+  </data>
+  <data name="lblExportinexcel" xml:space="preserve">
+    <value>एक्सेल में निर्यात करें</value>
+  </data>
+  <data name="lblExportinPDF" xml:space="preserve">
+    <value>पीडीएफ में निर्यात करें</value>
+  </data>
+  <data name="lblFebruary" xml:space="preserve">
+    <value>फरवरी</value>
+  </data>
+  <data name="lblGenerateReport" xml:space="preserve">
+    <value>जमा करें</value>
+  </data>
+  <data name="lblInCompleted" xml:space="preserve">
+    <value>अधूरा</value>
+  </data>
+  <data name="lblJanuary" xml:space="preserve">
+    <value>जनवरी</value>
+  </data>
+  <data name="lblJuly" xml:space="preserve">
+    <value>जुलाई</value>
+  </data>
+  <data name="lblJune" xml:space="preserve">
+    <value>जून</value>
+  </data>
+  <data name="lblLanguage" xml:space="preserve">
+    <value>भाषा</value>
+  </data>
+  <data name="lblMarch" xml:space="preserve">
+    <value>मार्च</value>
+  </data>
+  <data name="lblMay" xml:space="preserve">
+    <value>मई</value>
+  </data>
+  <data name="lblNeverLoginUsers" xml:space="preserve">
+    <value>कभी प्रवेश नहीं किया</value>
+  </data>
+  <data name="lblNotStarted" xml:space="preserve">
+    <value>शुरू नही हुआ</value>
+  </data>
+  <data name="lblNovember" xml:space="preserve">
+    <value>नवंबर</value>
+  </data>
+  <data name="lblOctober" xml:space="preserve">
+    <value>अक्टूबर</value>
+  </data>
+  <data name="lblOrganisationGroupUserDetail" xml:space="preserve">
+    <value>संगठन समूह उपयोगकर्ता विवरण</value>
+  </data>
+  <data name="lblOrganisationLicenceReport" xml:space="preserve">
+    <value>संगठन लाइसेंस रिपोर्ट</value>
+  </data>
+  <data name="lblOrganisationUserReport" xml:space="preserve">
+    <value>संगठन उपयोगकर्ता रिपोर्ट</value>
+  </data>
+  <data name="lblSeptember" xml:space="preserve">
+    <value>सितंबर</value>
+  </data>
+  <data name="lblToggleDropdown" xml:space="preserve">
+    <value>ड्रॉपडाउन टॉगल करें</value>
+  </data>
+  <data name="lblTotalActiveusers" xml:space="preserve">
+    <value>कुल सक्रिय उपयोगकर्ता</value>
+  </data>
+  <data name="lblTotalAssignments" xml:space="preserve">
+    <value>कुल असाइनमेंट</value>
+  </data>
+  <data name="lblTotalCategories" xml:space="preserve">
+    <value>कुल विषय</value>
+  </data>
+  <data name="lblTotalCourses" xml:space="preserve">
+    <value>कुल पाठ्यक्रम</value>
+  </data>
+  <data name="lblTotalGroups" xml:space="preserve">
+    <value>कुल समूह</value>
+  </data>
+  <data name="lblTotalOrganisation" xml:space="preserve">
+    <value>कुल संगठन</value>
+  </data>
+  <data name="lblTotalUserCoursePassPercentage" xml:space="preserve">
+    <value>कुल उपयोगकर्ता कोर्स पास प्रतिशत</value>
+  </data>
+  <data name="lblTotalUserCourseRegistered" xml:space="preserve">
+    <value>कुल उपयोगकर्ता पाठ्यक्रम पंजीकृत</value>
+  </data>
+  <data name="lblTotalUsers" xml:space="preserve">
+    <value>कुल उपयोगकर्ता</value>
+  </data>
+  <data name="thAssigned" xml:space="preserve">
+    <value>निरुपित</value>
+  </data>
+  <data name="thCategory" xml:space="preserve">
+    <value>विषय</value>
+  </data>
+  <data name="thCompleted" xml:space="preserve">
+    <value>पूरा कर लिया है</value>
+  </data>
+  <data name="thCompletionDate" xml:space="preserve">
+    <value>पूरा करने की तिथि</value>
+  </data>
+  <data name="thCourse" xml:space="preserve">
+    <value>कोर्स</value>
+  </data>
+  <data name="thCourseUserDetail" xml:space="preserve">
+    <value>पाठ्यक्रम उपयोगकर्ता विवरण</value>
+  </data>
+  <data name="thEmail" xml:space="preserve">
+    <value>ईमेल</value>
+  </data>
+  <data name="thEmployeeId" xml:space="preserve">
+    <value>कर्मचारी आयडी</value>
+  </data>
+  <data name="thExpiryDate" xml:space="preserve">
+    <value>समाप्ति तिथि</value>
+  </data>
+  <data name="thFirstname" xml:space="preserve">
+    <value>प्रथम नाम</value>
+  </data>
+  <data name="thIncomplete" xml:space="preserve">
+    <value>चालू</value>
+  </data>
+  <data name="thLastName" xml:space="preserve">
+    <value>अंतिम नाम</value>
+  </data>
+  <data name="thNotStarted" xml:space="preserve">
+    <value>शुरू नही हुआ</value>
+  </data>
+  <data name="thNumber" xml:space="preserve">
+    <value>संख्या</value>
+  </data>
+  <data name="thOrganisation" xml:space="preserve">
+    <value>संगठन</value>
+  </data>
+  <data name="thOrganisationGroupDetail" xml:space="preserve">
+    <value>संगठन समूह विस्तार</value>
+  </data>
+  <data name="ThPercent" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="thRegistrationDate" xml:space="preserve">
+    <value>पंजीकरण तिथि</value>
+  </data>
+  <data name="thScore" xml:space="preserve">
+    <value>स्कोर (%)</value>
+  </data>
+  <data name="thStatus" xml:space="preserve">
+    <value>स्थिति</value>
+  </data>
+  <data name="thUserCourseDetail" xml:space="preserve">
+    <value>उपयोगकर्ता कोर्स विवरण</value>
+  </data>
+  <data name="thUserDetail" xml:space="preserve">
+    <value>उपयोगकर्ता विवरण</value>
+  </data>
+  <data name="tooltipOrganisationUserReport" xml:space="preserve">
+    <value>संगठन उपयोगकर्ता रिपोर्ट</value>
+  </data>
+  <data name="lblCourseStatusDetail" xml:space="preserve">
+    <value>कोर्स स्थिति का विवरण</value>
+  </data>
+  <data name="lblInProgress" xml:space="preserve">
+    <value>प्रगति पर</value>
+  </data>
+  <data name="lblAnd" xml:space="preserve">
+    <value>और</value>
+  </data>
+  <data name="lblAvgMarks" xml:space="preserve">
+    <value>प्राप्त औसत अंक</value>
+  </data>
+  <data name="lblHours" xml:space="preserve">
+    <value>घंटे</value>
+  </data>
+  <data name="lblMinutes" xml:space="preserve">
+    <value>मिनट</value>
+  </data>
+  <data name="lblNoOfCourses" xml:space="preserve">
+    <value>पाठ्यक्रमों की संख्या</value>
+  </data>
+  <data name="lblParentHomePage" xml:space="preserve">
+    <value>अभिभावक मुख पृष्ठ</value>
+  </data>
+  <data name="lblTeacherHomePage" xml:space="preserve">
+    <value>शिक्षक होम पेज</value>
+  </data>
+  <data name="lblTotalTimeSpent" xml:space="preserve">
+    <value>कुल समय बिताया</value>
+  </data>
+  <data name="lblAtemptedCourses" xml:space="preserve">
+    <value>प्रयास किए गए पाठ्यक्रमों की संख्या</value>
+  </data>
+</root>

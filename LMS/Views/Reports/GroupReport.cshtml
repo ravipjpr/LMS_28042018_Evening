@@ -1,0 +1,151 @@
+﻿
+@{
+    ViewBag.Title = "GroupReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    @Styles.Render("~/Content/jquery.dataTables.min.css");
+}
+
+@using (Html.BeginForm("GroupReport", "Reports", FormMethod.Post, new { @id = "myform" }))
+{
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Admin">@LMSResourse.Common.ApplicationMenu.lblHome</a></li>
+                <li class="breadcrumb-item"><a href="~/Reports">@LMSResourse.Common.ApplicationMenu.lblReports</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Group report</li>
+            </ol>
+        </nav>
+        <div style="align-items:center;text-align:center;vertical-align:middle;">
+            <div id="errormessage" style="display:none;" class="alert alert-danger" role="alert"></div>
+            @Html.Hidden("ActionType", "0")
+        </div>
+        <div class="" id="reportData">
+            <div class="table-responsive margin-top-20">
+                <table border="0" class="table table-bordered dataTable table-hover" id="myDataTable">
+                    <thead>
+                        <tr>
+                            <th class="border-left-top-bottom" style="width:220px">@LMSResourse.Admin.Group.fldGroupName</th>
+                            <th>@LMSResourse.Common.ApplicationMenu.lblUsers</th>
+                            <th class="border-right-top-bottom">@LMSResourse.Common.ApplicationMenu.lblCourses</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/common-functions-util.js")"></script>
+    <script type="text/javascript">
+        jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
+            var _that = this;
+
+            if (iDelay === undefined) {
+                iDelay = 250;
+            }
+
+            this.each(function (i) {
+                $.fn.dataTableExt.iApiIndex = i;
+                var
+                    $this = this,
+                    oTimerId = null,
+                    sPreviousSearch = null,
+                    anControl = $('input', _that.fnSettings().aanFeatures.f);
+
+                anControl.unbind('keyup search input').bind('keyup search input', function () {
+                    var $$this = $this;
+
+                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                        window.clearTimeout(oTimerId);
+                        sPreviousSearch = anControl.val();
+                        oTimerId = window.setTimeout(function () {
+                            $.fn.dataTableExt.iApiIndex = i;
+                            _that.fnFilter(anControl.val());
+                        }, iDelay);
+                    }
+                });
+
+                return this;
+            });
+            return this;
+        };
+
+        $(document).ready(function () {
+            $("#mainmenu li").removeClass("active");
+            $("#mainmenu li:eq(8)").addClass("active");
+
+            fillGrid();
+
+            //$("#create").click(function (e) {
+            //    e.preventDefault();
+            //    $("#reportData").show();
+            //    fillGrid();
+
+            //});
+
+            //$("#Exportinexcel").click(function (e) { $("#ActionType").val("0"); $('#myform').submit(); });
+            //$("#ExportinPdf").click(function (e) { e.preventDefault(); $("#ActionType").val("1"); $('#myform').submit(); });
+
+            function fillGrid() {
+                var fileUrl = "../Include/datatablefiles/";
+                var filename = "en-us.txt";
+                if (filename == '')
+                    fileUrl = fileUrl + "en-us.txt";
+                else
+                    fileUrl = fileUrl + filename;
+                //var Display = parseInt('@Session["ListiDisplayLength"]');
+
+                var oTable = $('#myDataTable').dataTable({
+                    "bServerSide": true,
+                    "sAjaxSource": "../Reports/AjaxHandlerGroupReport",
+                    "bProcessing": false,
+                    "bStateSave": false,
+                    "bDestroy": true,
+                    "bFilter": false,
+                    "bInfo": false,
+                    // "bLengthChange": false,
+                    // "bPaginate": false,
+                    "scrollX": "500px;",
+                    "sPaginationType": "full_numbers",
+                    "sDom": '<"top"lfip>rt<"bottom"ip<"clear">',
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@LMSResourse.Common.Common.GridAll']],
+                    "oLanguage": { "sUrl": fileUrl },
+                    "fnServerParams": function (aoData) {
+                        ////aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + ($('#CourseId').val() == '' ? '0' : $('#CourseId').val()) + "~" + ($('#GroupId').val() == '' ? '0' : $('#GroupId').val()) })
+                        //aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + '0' + "~" + ($('#GroupId').val() == '' ? '0' : $('#GroupId').val()) })
+                    },
+                    "aoColumns": [
+                                {
+                                    "bSortable": false,
+                                    "fnRender": function (oObj) {
+                                        return ('<a style="color:blue;" class="GroupDetail" href="#" data-target="#mQueryDetail">' + oObj.aData[0].toString() + '</a> <input type="hidden" id="Groupid" value="' + oObj.aData[3].toString() + '" />');
+                                    }
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                }
+                    ],
+                    "fnDrawCallback": function (oSettings) {
+                    }
+                });
+                setTimeout(function () { oTable.fnSetFilteringDelay(600); }, 500);
+            }
+            $('#myDataTable > tbody').on('click', '.GroupDetail', function () {
+
+                var id = "",Type="";
+                var $row = $(this).closest("tr");
+                id = $row.find('#Groupid').val();
+                if (id != "0" && id != '') {
+                    window.location = 'GroupInfo/' + id ;
+                }
+                else { return false; }
+            });
+            
+        });
+    </script>
+}
+

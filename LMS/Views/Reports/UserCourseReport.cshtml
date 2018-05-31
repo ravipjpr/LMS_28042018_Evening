@@ -1,0 +1,359 @@
+﻿@model LMS.Models.Rp_UserCourseReport
+@{
+    ViewBag.Title = "UserReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    @Styles.Render("~/Content/jquery.dataTables.min.css");
+}
+@using (Html.BeginForm("UserCourseReport", "Reports", FormMethod.Post, new { @id = "myform" }))
+{
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Admin">@LMSResourse.Common.ApplicationMenu.lblHome</a></li>
+                <li class="breadcrumb-item"><a href="~/Reports">@LMSResourse.Common.ApplicationMenu.lblReports</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@LMSResourse.Common.ApplicationMenu.tooltipUserCourseReport</li>
+            </ol>
+        </nav>
+        <div style="align-items:center;text-align:center;vertical-align:middle;">
+            <div id="errormessage" style="display:none;" class="alert alert-danger" role="alert"></div>
+        </div>
+        <div class="form-group">
+            <div class="card mb-8" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <i class="fa fa-bar-chart"></i>@LMSResourse.Admin.Report.thUserCourseDetail
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12 my-auto">
+                            <canvas id="myBarChart" width="100" height="30"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer small text-muted">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-4">@Html.LabelFor(model => model.OrganisationId)*&nbsp;@Html.DropDownList("OrganisationId", (IEnumerable<SelectListItem>)ViewBag.OrganisationList, new { @class = "form-control", @aria_describedby = "basic-addon2" })</div>
+                <div class="col-md-4">@Html.LabelFor(model => model.CourseId) &nbsp;:&nbsp;@Html.DropDownList("CourseId", (IEnumerable<SelectListItem>)ViewBag.CourseList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control", @aria_describedby = "basic-addon2" })</div>
+                <div class="col-md-4">@Html.LabelFor(model => model.GroupId) &nbsp;:&nbsp;@Html.DropDownList("GroupId", (IEnumerable<SelectListItem>)ViewBag.GroupsList, @LMSResourse.Common.Common.dropAll, new { @class = "form-control ", disabled = "true", @aria_describedby = "basic-addon2" })</div>
+            </div>
+            <div class="form-row" style="margin-top: 10px;">
+                @*<div class="col-md-4">@Html.CheckBoxFor(model => model.IsExpiryCourse)
+                     @Html.LabelFor(model => model.IsExpiryCourse)
+                    </div>*@
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary" id="create">@LMSResourse.Admin.Report.lblGenerateReport</button>
+                    <button type="button" class="btn btn-primary" data-toggle="dropdown" style="margin-left: -10px;">
+                        <i class="fa fa-caret-square-o-down"></i>
+                        <span class="caret"></span>
+                        <span class="sr-only">@LMSResourse.Admin.Report.lblToggleDropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu" style="left:0px;">
+                        <li class="dropdown-item"><a href="#" id="Exportinexcel">@LMSResourse.Admin.Report.lblExportinexcel</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="reportData" style="display:none;">
+            <div class="table-responsive margin-top-20">
+                <table border="0" class="table table-bordered dataTable table-hover" id="myDataTable">
+                    <thead>
+                        <tr>
+                            @*<th>
+                                    <input type="checkbox" name="check_all" id="selectallboxes" />
+                                </th>*@
+                            <th class="border-left-top-bottom" style="width:220px">@LMSResourse.Admin.Report.thCourse</th>
+                            <th>@LMSResourse.Admin.Report.thFirstname</th>
+                            <th>@LMSResourse.Admin.Report.thLastName</th>
+                            <th>@LMSResourse.Admin.Report.thEmail</th>
+                            <th>@LMSResourse.Admin.Report.thRegistrationDate</th>
+                            <th>@LMSResourse.Admin.Report.thStatus</th>
+                            <th>@LMSResourse.Admin.Report.thCompletionDate</th>
+                            <th>@LMSResourse.Admin.Report.thScore</th>
+                            <th class="border-right-top-bottom">@LMSResourse.Admin.Report.thExpiryDate</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script src="@Url.Content("~/Include/startbootstrap-sb-admin/vendor/chart.js/Chart.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/common-functions-util.js")"></script>
+    <script type="text/javascript">
+        jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function (oSettings, iDelay) {
+            var _that = this;
+
+            if (iDelay === undefined) {
+                iDelay = 250;
+            }
+
+            this.each(function (i) {
+                $.fn.dataTableExt.iApiIndex = i;
+                var
+                    $this = this,
+                    oTimerId = null,
+                    sPreviousSearch = null,
+                    anControl = $('input', _that.fnSettings().aanFeatures.f);
+
+                anControl.unbind('keyup search input').bind('keyup search input', function () {
+                    var $$this = $this;
+
+                    if (sPreviousSearch === null || sPreviousSearch != anControl.val()) {
+                        window.clearTimeout(oTimerId);
+                        sPreviousSearch = anControl.val();
+                        oTimerId = window.setTimeout(function () {
+                            $.fn.dataTableExt.iApiIndex = i;
+                            _that.fnFilter(anControl.val());
+                        }, iDelay);
+                    }
+                });
+
+                return this;
+            });
+            return this;
+        };
+
+        $(document).ready(function () {
+            $("#mainmenu li").removeClass("active");
+            $("#mainmenu li:eq(8)").addClass("active");
+
+            doAjax("../Reports/CheckIsUserindividualAssigned", { Oid: ($("#OrganisationId").val() != null && $("#OrganisationId").val() != "" ? $("#OrganisationId").val() : "0") }, function (data) {
+                console.log(data.data);
+                if (data.data) {
+                    $("#GroupId").attr("disabled", true);
+                } else {
+                    $("#GroupId").attr("disabled", false);
+                }
+            });
+
+            $("#OrganisationId").change(function () {
+
+                if ($("#OrganisationId").val() != 0 && $("#OrganisationId").val() != null && $("#OrganisationId").val() != "") {
+                    $("#GroupId").removeAttr("disabled");
+                    var x = $('#GroupId option').filter(function () { return $(this).html() == '@LMSResourse.Common.Common.dropAll'; });
+                    if (x != null) { $(x).attr('selected', 'selected'); }
+                    $('#GroupId option').each(function () {
+                        var group_org_value = this.value.toString();
+                        if ((group_org_value + "").split("~")[1] == $("#OrganisationId").val()) {
+                            $(this).show();
+                        } else
+                            $(this).hide();
+                    });
+
+                    $.ajax({
+                        url: "../Reports/CheckIsUserindividualAssigned",
+                        data: { Oid: ($("#OrganisationId").val() != "" ? $("#OrganisationId").val() : "0") },
+                        success: function (data) {
+                            console.log(data.data);
+                            if (data.data) {
+                                $("#GroupId").attr("disabled", true);
+                            }
+                        }
+                    });
+                    //$('#GroupId option').eq(0).show();
+                    $("#GroupId").val($("#GroupId option:first").val());
+                }
+                else {
+                    $("#GroupId").attr("disabled", true);
+                    var x = $('#GroupId option').filter(function () { return $(this).html() == '@LMSResourse.Common.Common.dropAll'; });
+                    $(this).show();
+                    if (x != null) { $(x).attr('selected', 'selected'); }
+                    $("#GroupId").val($("#GroupId option:first").val());
+                }
+                doAjax("../Reports/GetCoursesForGroupByID", { gid: "0" }, function (data) {
+                    $("#CourseId").html(data.data);
+                });
+            });
+
+            $("#GroupId").change(function () {
+
+                var grp_id = $(this).val();
+                if (grp_id != 0 && grp_id != null && grp_id != "") {
+
+                    if (grp_id.indexOf("~") > -1) {
+                        var gID = grp_id.split('~')[0];
+
+                        doAjax("../Reports/GetCoursesForGroupByID", { gid: gID }, function (data) {
+                            console.log(data.data);
+                            $("#CourseId").html(data.data);
+                        });
+                    } else {
+                        doAjax("../Reports/GetCoursesForGroupByID", { gid: "0" }, function (data) {
+                            $("#CourseId").html(data.data);
+                        });
+                    }
+                }
+            });
+
+            $("#create").click(function (e) {
+                e.preventDefault();
+                $("#reportData").show();
+                fillGrid();
+            });
+
+            $("#Exportinexcel").click(function (e) { $('#myform').submit(); });
+
+            function fillGrid() {
+                var gID;
+                if ($('#GroupId').val() != '') {
+                    gID = $('#GroupId').val().split('~')[0];
+                }
+                var fileUrl = "../Include/datatablefiles/";
+                var filename = "en-us.txt";
+                if (filename == '')
+                    fileUrl = fileUrl + "en-us.txt";
+                else
+                    fileUrl = fileUrl + filename;
+                //var Display = parseInt('@Session["ListiDisplayLength"]');
+
+                var oTable = $('#myDataTable').dataTable({
+                    "bServerSide": true,
+                    "sAjaxSource": "../Reports/AjaxHandlerUserCourseReport",
+                    "bProcessing": false,
+                    "bStateSave": false,
+                    "bDestroy": true,
+                    "bFilter": false,
+                    "bInfo": false,
+                    // "bLengthChange": false,
+                    // "bPaginate": false,
+                    "scrollX": "500px;",
+                    "sPaginationType": "full_numbers",
+                    "sDom": '<"top"lfip>rt<"bottom"ip<"clear">',
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@LMSResourse.Common.Common.GridAll']],
+                    "oLanguage": { "sUrl": fileUrl },
+                    "fnServerParams": function (aoData) {
+                        aoData.push({ "name": "fCol1", "value": ($('#OrganisationId').val() == '' ? '0' : $('#OrganisationId').val()) + "~" + ($('#CourseId').val() == '' ? '0' : $('#CourseId').val()) + "~" + ($('#GroupId').val() == '' ? '0' : gID) + "~" + $('#IsExpiryCourse').prop('checked') })
+                    },
+                    "aoColumns": [
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                },
+                                {
+                                    "bSortable": false
+                                }
+                    ],
+                    "fnDrawCallback": function (oSettings) {
+                    }
+                });
+                setTimeout(function () { oTable.fnSetFilteringDelay(600); }, 500);
+            }
+
+            var totalUsers = @Html.Raw(Json.Encode(@ViewBag.TotalUsers));
+            var totalPassedUsers = @Html.Raw(Json.Encode(@ViewBag.TotalPassedUsers));
+            var totalRegisteredUsers = @Html.Raw(Json.Encode(@ViewBag.TotalRegisteredUsers));
+
+            var maxValue = Math.max(parseInt(totalUsers), parseFloat(totalPassedUsers), parseInt(totalRegisteredUsers));
+
+            new Chart($("#myBarChart"), {
+                type: "bar",
+                data: {
+                    labels: ["@LMSResourse.Admin.Report.lblJanuary","@LMSResourse.Admin.Report.lblFebruary","@LMSResourse.Admin.Report.lblMarch","@LMSResourse.Admin.Report.lblApril",
+                        "@LMSResourse.Admin.Report.lblMay","@LMSResourse.Admin.Report.lblJune","@LMSResourse.Admin.Report.lblJuly","@LMSResourse.Admin.Report.lblAugust",
+                        "@LMSResourse.Admin.Report.lblSeptember","@LMSResourse.Admin.Report.lblOctober","@LMSResourse.Admin.Report.lblNovember","@LMSResourse.Admin.Report.lblDecember"],
+                    datasets: [{
+                        title: "@LMSResourse.Admin.Report.lblTotalUsers",
+                        label: "@LMSResourse.Admin.Report.lblTotalUsers",
+                        yAxisID: 'A',
+                        data: totalUsers
+                    },
+                    {
+                        title: "@LMSResourse.Admin.Report.lblTotalUserCoursePassPercentage",
+                        label: '@LMSResourse.Admin.Report.lblTotalUserCoursePassPercentage',
+                        yAxisID: 'B',
+                        backgroundColor: "rgba(2,117,216,1)",
+                        borderColor: "rgba(2,117,216,1)",
+                        data: totalPassedUsers
+                    },
+                    {
+                        label: "@LMSResourse.Admin.Report.lblTotalUserCourseRegistered",
+                        lineTension: .3,
+                        backgroundColor: "rgba(2,117,216,0.2)",
+                        borderColor: "rgba(2,117,216,1)",
+                        pointRadius: 5,
+                        pointBackgroundColor: "rgba(2,117,216,1)",
+                        pointBorderColor: "rgba(255,255,255,0.8)",
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "rgba(2,117,216,1)",
+                        pointHitRadius: 20,
+                        pointBorderWidth: 2,
+                        data: totalRegisteredUsers
+                    }
+                    ]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            time: {
+                                unit: "months"
+                            },
+                            gridLines: {
+                                display: !1
+                            },
+                            ticks: {
+                                maxTicksLimit: 12
+                            }
+                        }
+                        ],
+                        yAxes: [{
+                            id: 'A',
+                            type: 'linear',
+                            position: 'left',
+                        }, {
+                            id: 'B',
+                            type: 'linear',
+                            position: 'right',
+                            ticks: {
+                                min: 0, maxTicksLimit: 5
+                            }
+                            //,
+                            //ticks: {
+                            //    min: 0, max: maxValue, maxTicksLimit: 5
+                            //}
+                        },
+                        {
+                            id: 'C',
+                            type: 'linear',
+                            position: 'center',
+                            title: 'C',
+                            ticks: {
+                                min: 0,
+                                max: maxValue
+                            },
+                            gridLines: {
+                                color: "rgba(0, 0, 0, .125)"
+                            }
+                        }
+                        ]
+                    },
+                    legend: {
+                        display: !1
+                    }
+                }
+            });
+        });
+    </script>
+}

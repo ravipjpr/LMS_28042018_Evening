@@ -1,0 +1,28 @@
+﻿@model LMS.Models.Rp_CourseReport
+@{
+    ViewBag.Title = "UserReportSummary";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    
+     var db = new CLSLms.LeopinkLMSDBEntities();
+     var query = from x in db.UserGroups
+                     where x.Group.IsDeleted == false && x.UserProfile.IsDelete == false
+                     orderby x.Group.GroupName
+                     group x by x.Group.GroupName into g
+                     select new {GroupName = g.Key  , count= g.Count()};
+     var Chartdata = query.ToList();
+
+
+     var myChart = new Chart(width: 600, height: 400, theme: ChartTheme.Green)
+        .AddTitle("Chart Title")
+        .AddSeries(            
+            name: "Employee",
+            chartType: "Pie",                                               
+            xValue:  Chartdata.Select(x=>x.GroupName.ToString() + " : " + x.count.ToString()).ToArray(),
+            yValues: Chartdata.Select(x => x.count).ToArray())
+         .AddLegend()                   
+        .Write();
+     
+}
+
+<h2>UserReportSummary</h2>
+
